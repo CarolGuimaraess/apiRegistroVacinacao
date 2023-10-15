@@ -2,9 +2,12 @@ package com.registroVacinacao.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.registroVacinacao.entity.RegistroVacinacao;
+import com.registroVacinacao.repository.RegistroVacinacaoRepository;
 import com.registroVacinacao.wbservice.PacienteWBService;
 import com.registroVacinacao.wbservice.VacinaWBService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -21,12 +24,16 @@ public class VacinaService {
     private final VacinaWBService vacinaWBService;
 
     @Autowired
-    public VacinaService(RegistroVacinacaoService registroVacinacaoService, PacienteWBService pacienteWBService, VacinaWBService vacinaWBService) {
+    public VacinaService(RegistroVacinacaoService registroVacinacaoService, PacienteWBService pacienteWBService, VacinaWBService vacinaWBService, CacheManager cacheManager) {
         this.registroVacinacaoService = registroVacinacaoService;
         this.pacienteWBService = pacienteWBService;
         this.vacinaWBService = vacinaWBService;
+        this.cacheManager = cacheManager;
     }
 
+    private final CacheManager cacheManager;
+
+    @Cacheable("registroVacinacaoCache")
     public List<Map<String, Object>> listarDosesDoPaciente(String pacienteId) {
         JsonNode dadosPacientes = pacienteWBService.buscarPaciente(pacienteId);
 
@@ -54,7 +61,7 @@ public class VacinaService {
         return dosesInfo;
     }
 
-    public Map<String, Object>  to(String estado) {
+    public Map<String, Object>  listarTotalVacinasAplicadas(String estado) {
         try {
             JsonNode dadosPacientes = pacienteWBService.listaTodosPacientes();
             List<RegistroVacinacao> todosOsRegistros = registroVacinacaoService.listarRegistroVacinacao();
@@ -169,6 +176,7 @@ public class VacinaService {
         pacienteInfo.put("estado", pacienteNode.get("enderecos").get(0).get("estado").asText());
         return pacienteInfo;
     }
+
 
     private Map<String, Object> InfoVacina(JsonNode vacina) {
         Map<String, Object> vacinaInfo = new HashMap<>();
