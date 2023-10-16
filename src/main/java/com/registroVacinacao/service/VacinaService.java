@@ -2,7 +2,6 @@ package com.registroVacinacao.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.registroVacinacao.entity.RegistroVacinacao;
-import com.registroVacinacao.repository.RegistroVacinacaoRepository;
 import com.registroVacinacao.wbservice.PacienteWBService;
 import com.registroVacinacao.wbservice.VacinaWBService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,7 +62,7 @@ public class VacinaService {
 
     public Map<String, Object>  listarTotalVacinasAplicadas(String estado) {
         try {
-            JsonNode dadosPacientes = pacienteWBService.listaTodosPacientes();
+            JsonNode dadosPacientes = pacienteWBService.listarTodosPacientes();
             List<RegistroVacinacao> todosOsRegistros = registroVacinacaoService.listarRegistroVacinacao();
 
             if (dadosPacientes == null) {
@@ -111,7 +110,7 @@ public class VacinaService {
         }
 
         try {
-            JsonNode dadosPacientes = pacienteWBService.listaTodosPacientes();
+            JsonNode dadosPacientes = pacienteWBService.listarTodosPacientes();
             JsonNode dadosVacina = vacinaWBService.listarTodasVacinas();
             List<RegistroVacinacao> todosOsRegistros = registroVacinacaoService.listarRegistroVacinacao();
 

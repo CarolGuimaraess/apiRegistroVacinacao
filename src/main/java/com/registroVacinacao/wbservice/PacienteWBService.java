@@ -16,7 +16,7 @@ public class PacienteWBService {
         this.restTemplate = new RestTemplate();
     }
 
-    public JsonNode listaTodosPacientes() {
+    public JsonNode listarTodosPacientes() {
         String projectBUrl = "http://localhost:8082/pacientes";
         try {
             String pacienteData = restTemplate.getForObject(projectBUrl, String.class);
@@ -30,7 +30,7 @@ public class PacienteWBService {
     }
 
     public JsonNode buscarPaciente(String id) {
-        String projectBUrl = "http://localhost:8082pacientes/" + id;
+        String projectBUrl = "http://localhost:8082/pacientes/" + id;
         try {
             String pacienteData = restTemplate.getForObject(projectBUrl, String.class);
             ObjectMapper objectMapper = new ObjectMapper();
