@@ -152,4 +152,19 @@ public class RegistroVacinacaoController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resposta);
         }
     }
+    @GetMapping("/pacientes/vacinas/aplicadas")
+    public ResponseEntity<?> listarVacinasAplicadasFabricante(
+            @RequestParam(name = "fabricante") String fabricante,
+            @RequestParam(name = "estado", required = false) String estado) {
+        try {
+            Map<String, Object> resposta = pacienteVacinaService.listarVacinasAplicadasFabricante(fabricante, estado);
+            return ResponseEntity.ok(resposta);
+        } catch (Exception e) {
+            Map<String, String> resposta = new HashMap<>();
+            resposta.put("mensagem", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resposta);
+        }
+    }
+
+
 }

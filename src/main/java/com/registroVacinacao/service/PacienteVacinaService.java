@@ -163,7 +163,6 @@ public class PacienteVacinaService {
     }
 
 
-
     private Map<String, Object> InfoPaciente(JsonNode pacienteNode) {
         Map<String, Object> pacienteInfo = new HashMap<>();
         pacienteInfo.put("nome", pacienteNode.get("nome").asText());
@@ -193,5 +192,29 @@ public class PacienteVacinaService {
         LocalDate dataNasc = LocalDate.parse(dataNascimento);
         LocalDate dataAtual = LocalDate.now();
         return Period.between(dataNasc, dataAtual).getYears();
+    }
+
+    public Map<String, Object> listarVacinasAplicadasFabricante(String fabricante, String estado) {
+        JsonNode dadosVacinas = vacinaWBService.listarTodasVacinas();
+        List<RegistroVacinacao> dadosRegistroVacinacao = registroVacinacaoService.listarRegistroVacinacao();
+
+        int totalPessoasVacinas = 0;
+
+        for (JsonNode vacina : dadosVacinas) {
+            if (fabricante.equals(vacina.findValue("fabricante").asText())) {
+                String id = vacina.findValue("id").asText();
+                totalPessoasVacinas += (int) dadosRegistroVacinacao.stream()
+                        .filter(registro -> id.equals(registro.getIdentificacaoVacina()))
+                        .count();
+            }
+        }
+
+        Map<String, Object> resultado = new HashMap<>();
+        Map<String, Object> vacinaInfo = new HashMap<>();
+        vacinaInfo.put("fabricante", fabricante);
+        vacinaInfo.put("doses_aplicadas", totalPessoasVacinas);
+        resultado.put("vacina", vacinaInfo);
+
+        return resultado;
     }
 }
