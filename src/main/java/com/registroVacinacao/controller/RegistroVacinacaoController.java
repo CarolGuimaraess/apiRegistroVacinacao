@@ -2,7 +2,7 @@ package com.registroVacinacao.controller;
 
 import com.registroVacinacao.entity.RegistroVacinacao;
 import com.registroVacinacao.service.RegistroVacinacaoService;
-import com.registroVacinacao.service.VacinaService;
+import com.registroVacinacao.service.PacienteVacinaService;
 import com.registroVacinacao.wbservice.PacienteWBService;
 import com.registroVacinacao.wbservice.VacinaWBService;
 import lombok.Data;
@@ -30,7 +30,7 @@ public class RegistroVacinacaoController {
     @Autowired
     private VacinaWBService vacinaWBService;
     @Autowired
-    private VacinaService vacinaService;
+    private PacienteVacinaService pacienteVacinaService;
 
     @GetMapping
     public ResponseEntity<List<RegistroVacinacao>> listarRegistroVacinacao() {
@@ -107,7 +107,7 @@ public class RegistroVacinacaoController {
     @GetMapping("/pacientes/{pacienteId}/doses")
     public ResponseEntity<?> listarDosesPaciente(@PathVariable String pacienteId) {
         try {
-            List<Map<String, Object>> dosesInfo = vacinaService.listarDosesDoPaciente(pacienteId);
+            List<Map<String, Object>> dosesInfo = pacienteVacinaService.listarDosesDoPaciente(pacienteId);
             if (dosesInfo.isEmpty()) {
                 return ResponseEntity.notFound().build();
             }
@@ -128,7 +128,7 @@ public class RegistroVacinacaoController {
             if (requestParams.size() > 1 || (requestParams.size() == 1 && !requestParams.containsKey("estado"))) {
                 return ResponseEntity.badRequest().body("Erro: Parâmetros não permitidos na solicitação.");
             }
-            List<Map<String, Object>> resposta = Collections.singletonList(vacinaService.listarTotalVacinasAplicadas(estado));
+            List<Map<String, Object>> resposta = Collections.singletonList(pacienteVacinaService.listarTotalVacinasAplicadas(estado));
 
             return ResponseEntity.ok(resposta);
         } catch (Exception e) {
@@ -140,6 +140,16 @@ public class RegistroVacinacaoController {
     public ResponseEntity<?> listarPacientesComDosesAtrasadas(
             @RequestParam(name = "estado", required = false) String estado,
             @RequestParam Map<String, String> requestParams) {
-        return vacinaService.listarPacientesComDosesAtrasadas(estado, requestParams);
+        try {
+            if (requestParams.size() > 1 || (requestParams.size() == 1 && !requestParams.containsKey("estado"))) {
+                return ResponseEntity.badRequest().body("Erro: Parâmetros não permitidos na solicitação.");
+            }
+            List<Map<String, Object>> resposta = pacienteVacinaService.listarPacientesComDosesAtrasadas(estado);
+            return ResponseEntity.ok(resposta);
+        }catch (Exception e) {
+            Map<String, String> resposta = new HashMap<>();
+            resposta.put("mensagem", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resposta);
+        }
     }
 }

@@ -2,7 +2,7 @@ package com.registroVacinacao.wbservice;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.registroVacinacao.ExcecaoPersonalizada;
+import com.registroVacinacao.Exception;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -23,8 +23,8 @@ public class PacienteWBService {
             ObjectMapper objectMapper = new ObjectMapper();
 
             return objectMapper.readTree(pacienteData);
-        } catch (Exception e) {
-            ExcecaoPersonalizada excecao = ExcecaoPersonalizada.Erro500();
+        } catch (java.lang.Exception e) {
+            Exception excecao = Exception.Erro500();
             throw new RuntimeException(excecao.getMensagem());
         }
     }
@@ -36,8 +36,8 @@ public class PacienteWBService {
             ObjectMapper objectMapper = new ObjectMapper();
 
             return objectMapper.readTree(pacienteData);
-        } catch (Exception e) {
-            ExcecaoPersonalizada excecao = ExcecaoPersonalizada.Erro500();
+        } catch (java.lang.Exception e) {
+            Exception excecao = Exception.Erro500();
             throw new RuntimeException(excecao.getMensagem());
         }
     }
