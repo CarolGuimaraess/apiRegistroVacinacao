@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Service
 public class PacienteVacinaService {
@@ -118,41 +119,28 @@ public class PacienteVacinaService {
         List<Map<String, Object>> pacientesComDosesAtrasadas = new ArrayList<>();
 
         for (JsonNode pacienteNode : dadosPacientes) {
-            JsonNode enderecosNode = pacienteNode.path("enderecos");
-            if (enderecosNode.isArray()) {
-                for (JsonNode enderecoNode : enderecosNode) {
-                    JsonNode estadoNode = enderecoNode.path("estado");
-                    if (estadoNode.isTextual() && (estado == null || estado.isEmpty() || estadoNode.asText().trim().equalsIgnoreCase(estado.trim()))) {
-                        String pacienteId = pacienteNode.get("id").asText();
+            if (estadoValido(pacienteNode, estado)) {
+                String pacienteId = pacienteNode.get("id").asText();
 
-                        for (JsonNode vacina : dadosVacina) {
-                            int numeroDeDoses = vacina.get("numeroDeDoses").asInt();
-                            int intervaloDeDoses = vacina.get("intervaloDeDoses").asInt();
-                            String identificacaoVacina = vacina.get("id").asText();
+                for (JsonNode vacina : dadosVacina) {
+                    int numeroDeDoses = vacina.get("numeroDeDoses").asInt();
+                    int intervaloDeDoses = vacina.get("intervaloDeDoses").asInt();
+                    String identificacaoVacina = vacina.get("id").asText();
 
-                            List<RegistroVacinacao> registrosDoPacienteParaVacina = dadosRegistroVacinacao.stream()
-                                    .filter(registro -> registro.getIdentificacaoPaciente().equals(pacienteId)
-                                            && registro.getIdentificacaoVacina().equals(identificacaoVacina))
-                                    .collect(Collectors.toList());
+                    List<RegistroVacinacao> registrosDoPacienteParaVacina = getRegistrosDoPacienteParaVacina(dadosRegistroVacinacao, pacienteId, identificacaoVacina);
 
-                            if (registrosDoPacienteParaVacina.size() < numeroDeDoses && !registrosDoPacienteParaVacina.isEmpty()) {
-                                RegistroVacinacao ultimaDose = registrosDoPacienteParaVacina.get(registrosDoPacienteParaVacina.size() - 1);
-                                LocalDate dataDaUltimaDose = ultimaDose.getDataVacinacao();
-                                LocalDate dataDaProximaDose = dataDaUltimaDose.plusDays(intervaloDeDoses);
+                    if (registrosDoPacienteParaVacina.size() < numeroDeDoses && !registrosDoPacienteParaVacina.isEmpty()) {
+                        RegistroVacinacao ultimaDose = registrosDoPacienteParaVacina.get(registrosDoPacienteParaVacina.size() - 1);
+                        LocalDate dataDaUltimaDose = ultimaDose.getDataVacinacao();
+                        LocalDate dataDaProximaDose = dataDaUltimaDose.plusDays(intervaloDeDoses);
 
-                                if (dataDaProximaDose.isBefore(LocalDate.now())) {
-                                    List<LocalDate> datasDasDosesAtrasadas = new ArrayList<>();
-                                    for (RegistroVacinacao registro : registrosDoPacienteParaVacina) {
-                                        datasDasDosesAtrasadas.add(registro.getDataVacinacao());
-                                    }
-                                    Map<String, Object> pacienteComDosesAtrasadas = new HashMap<>();
-                                    pacienteComDosesAtrasadas.put("paciente", InfoPaciente(pacienteNode));
-                                    pacienteComDosesAtrasadas.put("doses_atrasada", InfoDoses(datasDasDosesAtrasadas));
-                                    pacienteComDosesAtrasadas.put("vacina", InfoVacina(vacina));
-                                    pacientesComDosesAtrasadas.add(pacienteComDosesAtrasadas);
-                                }
-
-                            }
+                        if (dataDaProximaDose.isBefore(LocalDate.now())) {
+                            List<LocalDate> datasDasDosesAtrasadas = getDatasDasDosesAtrasadas(registrosDoPacienteParaVacina);
+                            Map<String, Object> pacienteComDosesAtrasadas = new HashMap<>();
+                            pacienteComDosesAtrasadas.put("paciente", InfoPaciente(pacienteNode));
+                            pacienteComDosesAtrasadas.put("doses_atrasada", InfoDoses(datasDasDosesAtrasadas));
+                            pacienteComDosesAtrasadas.put("vacina", InfoVacina(vacina));
+                            pacientesComDosesAtrasadas.add(pacienteComDosesAtrasadas);
                         }
                     }
                 }
@@ -161,6 +149,33 @@ public class PacienteVacinaService {
 
         return pacientesComDosesAtrasadas;
     }
+
+    private boolean estadoValido(JsonNode pacienteNode, String estado) {
+        JsonNode enderecosNode = pacienteNode.path("enderecos");
+        if (enderecosNode.isArray()) {
+            for (JsonNode enderecoNode : enderecosNode) {
+                JsonNode estadoNode = enderecoNode.path("estado");
+                if (estadoNode.isTextual() && (estado == null || estado.isEmpty() || estadoNode.asText().trim().equalsIgnoreCase(estado.trim()))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private List<RegistroVacinacao> getRegistrosDoPacienteParaVacina(List<RegistroVacinacao> dadosRegistroVacinacao, String pacienteId, String identificacaoVacina) {
+        return dadosRegistroVacinacao.stream()
+                .filter(registro -> registro.getIdentificacaoPaciente().equals(pacienteId)
+                        && registro.getIdentificacaoVacina().equals(identificacaoVacina))
+                .collect(Collectors.toList());
+    }
+
+    private List<LocalDate> getDatasDasDosesAtrasadas(List<RegistroVacinacao> registrosDoPaciente) {
+        return registrosDoPaciente.stream()
+                .map(RegistroVacinacao::getDataVacinacao)
+                .collect(Collectors.toList());
+    }
+
 
 
     private Map<String, Object> InfoPaciente(JsonNode pacienteNode) {
@@ -194,27 +209,68 @@ public class PacienteVacinaService {
         return Period.between(dataNasc, dataAtual).getYears();
     }
 
+
     public Map<String, Object> listarVacinasAplicadasFabricante(String fabricante, String estado) {
         JsonNode dadosVacinas = vacinaWBService.listarTodasVacinas();
-        List<RegistroVacinacao> dadosRegistroVacinacao = registroVacinacaoService.listarRegistroVacinacao();
+        List<Map<String, Object>> registrosComPacientes = combinarRegistroComPaciente();
 
-        int totalPessoasVacinas = 0;
-
-        for (JsonNode vacina : dadosVacinas) {
-            if (fabricante.equals(vacina.findValue("fabricante").asText())) {
-                String id = vacina.findValue("id").asText();
-                totalPessoasVacinas += (int) dadosRegistroVacinacao.stream()
-                        .filter(registro -> id.equals(registro.getIdentificacaoVacina()))
-                        .count();
-            }
-        }
+        int totalPessoasVacinadas = calcularTotalPessoasVacinadas(registrosComPacientes, dadosVacinas, fabricante, estado);
 
         Map<String, Object> resultado = new HashMap<>();
         Map<String, Object> vacinaInfo = new HashMap<>();
         vacinaInfo.put("fabricante", fabricante);
-        vacinaInfo.put("doses_aplicadas", totalPessoasVacinas);
+        vacinaInfo.put("doses_aplicadas", totalPessoasVacinadas);
         resultado.put("vacina", vacinaInfo);
 
         return resultado;
     }
+
+    private int calcularTotalPessoasVacinadas(List<Map<String, Object>> registrosComPacientes, JsonNode dadosVacinas, String fabricante, String estado) {
+        return (int) StreamSupport.stream(dadosVacinas.spliterator(), false)
+                .filter(vacina -> fabricante.equals(vacina.get("fabricante").asText()))
+                .map(vacina -> vacina.get("id").asText())
+                .flatMap(id -> registrosComPacientes.stream()
+                        .filter(registroComPaciente -> {
+                            JsonNode pacienteNode = (JsonNode) registroComPaciente.get("paciente");
+                            JsonNode enderecosNode = pacienteNode.path("enderecos");
+                            return enderecosNode.isArray() && enderecosNode.elements().hasNext();
+                        })
+                        .flatMap(registroComPaciente -> {
+                            JsonNode pacienteNode = (JsonNode) registroComPaciente.get("paciente");
+                            return StreamSupport.stream(pacienteNode.path("enderecos").spliterator(), false)
+                                    .filter(enderecoNode -> estado == null || estado.equals(enderecoNode.path("estado").asText()))
+                                    .filter(enderecoNode -> id.equals(((RegistroVacinacao) registroComPaciente.get("registroVacinacao")).getIdentificacaoVacina()));
+                        }))
+                .count();
+    }
+
+
+    private List<Map<String, Object>> combinarRegistroComPaciente() {
+        JsonNode dadosPacientes = pacienteWBService.listarTodosPacientes();
+        List<RegistroVacinacao> dadosRegistroVacinacao = registroVacinacaoService.listarRegistroVacinacao();
+
+        return dadosRegistroVacinacao.stream()
+                .map(registro -> {
+                    String pacienteId = registro.getIdentificacaoPaciente();
+
+                    JsonNode pacienteCorrespondente = StreamSupport.stream(dadosPacientes.spliterator(), false)
+                            .filter(pacienteNode -> pacienteNode.path("id").asText().equals(pacienteId))
+                            .findFirst()
+                            .orElse(null);
+
+                    if (pacienteCorrespondente != null) {
+                        Map<String, Object> registroComPaciente = new HashMap<>();
+                        registroComPaciente.put("registroVacinacao", registro);
+                        registroComPaciente.put("paciente", pacienteCorrespondente);
+
+                        return registroComPaciente;
+                    } else {
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+
 }
