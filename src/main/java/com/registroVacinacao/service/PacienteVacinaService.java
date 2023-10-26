@@ -1,14 +1,17 @@
 package com.registroVacinacao.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.registroVacinacao.entity.Log;
 import com.registroVacinacao.entity.RegistroVacinacao;
 import com.registroVacinacao.wbservice.PacienteWBService;
 import com.registroVacinacao.wbservice.VacinaWBService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.*;
@@ -27,6 +30,25 @@ public class PacienteVacinaService {
         this.pacienteWBService = pacienteWBService;
         this.vacinaWBService = vacinaWBService;
         this.cacheManager = cacheManager;
+    }
+
+    @Autowired
+    private MongoTemplate mongoTemplate;
+
+    public void registrarLog(String metodo, String acao, String mensagem, int statusCode) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String data = dateFormat.format(new Date());
+
+        Log log = new Log();
+        log.setTimestamp(data);
+        log.setLevel("INFO");
+        log.setMethod(metodo);
+        log.setAction(acao);
+        log.setStatusCode(statusCode);
+
+        log.setMessage(mensagem);
+
+        mongoTemplate.insert(log, "log");
     }
 
     private final CacheManager cacheManager;
