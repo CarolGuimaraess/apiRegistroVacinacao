@@ -5,6 +5,7 @@ import com.registroVacinacao.entity.Log;
 import com.registroVacinacao.entity.RegistroVacinacao;
 import com.registroVacinacao.clientsService.PacienteService;
 import com.registroVacinacao.clientsService.VacinaService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
@@ -76,12 +77,12 @@ public class PacienteVacinaService {
         }
     }
 
+
     public Map<String, Object> listarTotalVacinasAplicadas(String estado) {
         try {
-            JsonNode dadosPacientes = pacienteService.listarTodosPacientes();
-            List<RegistroVacinacao> dadosRegistroVacinacao = registroVacinacaoService.listarRegistroVacinacao();
+            List<Map<String, Object>> registrosComPacientes = combinarRegistroComPaciente();
 
-            int totalVacinasAplicadas = calcularTotalVacinasAplicadas(dadosPacientes, dadosRegistroVacinacao, estado);
+            int totalVacinasAplicadas = calcularTotalVacinasAplicadas(registrosComPacientes, estado);
 
             Map<String, Object> resposta = new HashMap<>();
             resposta.put("totalVacinasAplicadas", totalVacinasAplicadas);
@@ -92,21 +93,16 @@ public class PacienteVacinaService {
         }
     }
 
-    private int calcularTotalVacinasAplicadas(JsonNode dadosPacientes, List<RegistroVacinacao> dadosRegistroVacinacao, String estado) {
+    private int calcularTotalVacinasAplicadas(@NotNull List<Map<String, Object>> registrosComPacientes, String estado) {
         int totalVacinasAplicadas = 0;
 
-        for (JsonNode pacienteNode : dadosPacientes) {
-            JsonNode enderecosNode = pacienteNode.path("enderecos");
-            if (enderecosNode.isArray()) {
-                for (JsonNode enderecoNode : enderecosNode) {
-                    JsonNode estadoNode = enderecoNode.path("estado");
-                    if (estadoNode.isTextual()) {
-                        if (estado == null || estado.isEmpty() || estadoNode.asText().trim().equalsIgnoreCase(estado.trim())) {
-                            String pacienteId = pacienteNode.get("id").asText();
-                            long registrosParaPaciente = dadosRegistroVacinacao.stream().filter(registro -> registro.getIdentificacaoPaciente().equals(pacienteId)).count();
-                            totalVacinasAplicadas += (int) registrosParaPaciente;
-                        }
-                    }
+        for (Map<String, Object> registroComPaciente : registrosComPacientes) {
+            JsonNode pacienteNode = (JsonNode) registroComPaciente.get("paciente");
+
+            if (estadoValido(pacienteNode, estado)) {
+                RegistroVacinacao registro = (RegistroVacinacao) registroComPaciente.get("registroVacinacao");
+                if (registro != null) {
+                    totalVacinasAplicadas++;
                 }
             }
         }
@@ -127,7 +123,7 @@ public class PacienteVacinaService {
         }
     }
 
-    private List<Map<String, Object>> calcularPacientesComDosesAtrasadas(JsonNode dadosPacientes, JsonNode dadosVacina, List<RegistroVacinacao> dadosRegistroVacinacao, String estado) {
+    private @NotNull List<Map<String, Object>> calcularPacientesComDosesAtrasadas(@NotNull JsonNode dadosPacientes, JsonNode dadosVacina, List<RegistroVacinacao> dadosRegistroVacinacao, String estado) {
         List<Map<String, Object>> pacientesComDosesAtrasadas = new ArrayList<>();
 
         for (JsonNode pacienteNode : dadosPacientes) {
@@ -162,28 +158,15 @@ public class PacienteVacinaService {
         return pacientesComDosesAtrasadas;
     }
 
-    private boolean estadoValido(JsonNode pacienteNode, String estado) {
-        JsonNode enderecosNode = pacienteNode.path("enderecos");
-        if (enderecosNode.isArray()) {
-            for (JsonNode enderecoNode : enderecosNode) {
-                JsonNode estadoNode = enderecoNode.path("estado");
-                if (estadoNode.isTextual() && (estado == null || estado.isEmpty() || estadoNode.asText().trim().equalsIgnoreCase(estado.trim()))) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    private List<RegistroVacinacao> getRegistrosDoPacienteParaVacina(List<RegistroVacinacao> dadosRegistroVacinacao, String pacienteId, String identificacaoVacina) {
+    private List<RegistroVacinacao> getRegistrosDoPacienteParaVacina(@NotNull List<RegistroVacinacao> dadosRegistroVacinacao, String pacienteId, String identificacaoVacina) {
         return dadosRegistroVacinacao.stream().filter(registro -> registro.getIdentificacaoPaciente().equals(pacienteId) && registro.getIdentificacaoVacina().equals(identificacaoVacina)).collect(Collectors.toList());
     }
 
-    private List<LocalDate> getDatasDasDosesAtrasadas(List<RegistroVacinacao> registrosDoPaciente) {
+    private List<LocalDate> getDatasDasDosesAtrasadas(@NotNull List<RegistroVacinacao> registrosDoPaciente) {
         return registrosDoPaciente.stream().map(RegistroVacinacao::getDataVacinacao).collect(Collectors.toList());
     }
 
-    private Map<String, Object> InfoPaciente(JsonNode pacienteNode) {
+    private @NotNull Map<String, Object> InfoPaciente(@NotNull JsonNode pacienteNode) {
         Map<String, Object> pacienteInfo = new HashMap<>();
         pacienteInfo.put("nome", pacienteNode.get("nome").asText());
         pacienteInfo.put("idade", calcularIdade(pacienteNode.get("dataDeNascimento").asText()));
@@ -193,7 +176,7 @@ public class PacienteVacinaService {
         return pacienteInfo;
     }
 
-    private Map<String, Object> InfoVacina(JsonNode vacina) {
+    private @NotNull Map<String, Object> InfoVacina(@NotNull JsonNode vacina) {
         Map<String, Object> vacinaInfo = new HashMap<>();
         vacinaInfo.put("fabricante", vacina.get("fabricante").asText());
         vacinaInfo.put("total_de_doses", vacina.get("numeroDeDoses").asInt());
@@ -201,7 +184,7 @@ public class PacienteVacinaService {
         return vacinaInfo;
     }
 
-    private Map<String, Object> InfoDoses(List<LocalDate> datasDasDosesAtrasadas) {
+    private @NotNull Map<String, Object> InfoDoses(List<LocalDate> datasDasDosesAtrasadas) {
         Map<String, Object> dosesInfo = new HashMap<>();
         dosesInfo.put("doses", datasDasDosesAtrasadas);
         return dosesInfo;
@@ -228,37 +211,53 @@ public class PacienteVacinaService {
         return resultado;
     }
 
-    private int calcularTotalPessoasVacinadas(List<Map<String, Object>> registrosComPacientes, JsonNode dadosVacinas, String fabricante, String estado) {
-        return (int) StreamSupport.stream(dadosVacinas.spliterator(), false).filter(vacina -> fabricante.equals(vacina.get("fabricante").asText())).map(vacina -> vacina.get("id").asText()).flatMap(id -> registrosComPacientes.stream().filter(registroComPaciente -> {
-            JsonNode pacienteNode = (JsonNode) registroComPaciente.get("paciente");
-            JsonNode enderecosNode = pacienteNode.path("enderecos");
-            return enderecosNode.isArray() && enderecosNode.elements().hasNext();
-        }).flatMap(registroComPaciente -> {
-            JsonNode pacienteNode = (JsonNode) registroComPaciente.get("paciente");
-            return StreamSupport.stream(pacienteNode.path("enderecos").spliterator(), false).filter(enderecoNode -> estado == null || estado.equals(enderecoNode.path("estado").asText())).filter(enderecoNode -> id.equals(((RegistroVacinacao) registroComPaciente.get("registroVacinacao")).getIdentificacaoVacina()));
-        })).count();
+    private int calcularTotalPessoasVacinadas(List<Map<String, Object>> registrosComPacientes, @NotNull JsonNode dadosVacinas, String fabricante, String estado) {
+        return (int) StreamSupport.stream(dadosVacinas.spliterator(), false)
+                .filter(vacina -> fabricante.equals(vacina.get("fabricante").asText()))
+                .map(vacina -> vacina.get("id").asText())
+                .flatMap(id -> registrosComPacientes.stream()
+                        .filter(registroComPaciente -> {
+                            JsonNode pacienteNode = (JsonNode) registroComPaciente.get("paciente");
+                            return estadoValido(pacienteNode, estado);
+                        })
+                ).count();
+    }
+
+    private boolean estadoValido(@NotNull JsonNode pacienteNode, String estado) {
+        JsonNode enderecosNode = pacienteNode.path("enderecos");
+        if (enderecosNode.isArray()) {
+            for (JsonNode enderecoNode : enderecosNode) {
+                JsonNode estadoNode = enderecoNode.path("estado");
+                if (estadoNode.isTextual() && (estado == null || estado.isEmpty() || estadoNode.asText().trim().equalsIgnoreCase(estado.trim()))) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private List<Map<String, Object>> combinarRegistroComPaciente() {
         JsonNode dadosPacientes = pacienteService.listarTodosPacientes();
         List<RegistroVacinacao> dadosRegistroVacinacao = registroVacinacaoService.listarRegistroVacinacao();
 
-        return dadosRegistroVacinacao.stream().map(registro -> {
-            String pacienteId = registro.getIdentificacaoPaciente();
+        return dadosRegistroVacinacao.stream()
+                .map(registro -> {
+                    String pacienteId = registro.getIdentificacaoPaciente();
 
-            JsonNode pacienteCorrespondente = StreamSupport.stream(dadosPacientes.spliterator(), false).filter(pacienteNode -> pacienteNode.path("id").asText().equals(pacienteId)).findFirst().orElse(null);
+                    Optional<JsonNode> pacienteCorrespondente = StreamSupport.stream(dadosPacientes.spliterator(), false)
+                            .filter(pacienteNode -> pacienteNode.path("id").asText().equals(pacienteId))
+                            .findFirst();
 
-            if (pacienteCorrespondente != null) {
-                Map<String, Object> registroComPaciente = new HashMap<>();
-                registroComPaciente.put("registroVacinacao", registro);
-                registroComPaciente.put("paciente", pacienteCorrespondente);
-
-                return registroComPaciente;
-            } else {
-                return null;
-            }
-        }).filter(Objects::nonNull).collect(Collectors.toList());
+                    return pacienteCorrespondente.map(paciente -> {
+                        Map<String, Object> registroComPaciente = new HashMap<>();
+                        registroComPaciente.put("registroVacinacao", registro);
+                        registroComPaciente.put("paciente", paciente);
+                        return registroComPaciente;
+                    });
+                })
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
     }
-
 
 }
