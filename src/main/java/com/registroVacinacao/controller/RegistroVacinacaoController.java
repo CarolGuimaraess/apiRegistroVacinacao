@@ -3,8 +3,8 @@ package com.registroVacinacao.controller;
 import com.registroVacinacao.entity.RegistroVacinacao;
 import com.registroVacinacao.service.RegistroVacinacaoService;
 import com.registroVacinacao.service.PacienteVacinaService;
-import com.registroVacinacao.wbservice.PacienteWBService;
-import com.registroVacinacao.wbservice.VacinaWBService;
+import com.registroVacinacao.clientsService.PacienteService;
+import com.registroVacinacao.clientsService.VacinaService;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -26,9 +26,9 @@ public class RegistroVacinacaoController {
     @Autowired
     RegistroVacinacaoService registroVacinacaoService;
     @Autowired
-    private PacienteWBService pacienteWBService;
+    private PacienteService pacienteService;
     @Autowired
-    private VacinaWBService vacinaWBService;
+    private VacinaService vacinaService;
     @Autowired
     private PacienteVacinaService pacienteVacinaService;
 

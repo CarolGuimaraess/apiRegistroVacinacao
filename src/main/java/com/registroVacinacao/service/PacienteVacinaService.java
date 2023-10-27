@@ -2,8 +2,8 @@ package com.registroVacinacao.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.registroVacinacao.entity.RegistroVacinacao;
-import com.registroVacinacao.wbservice.PacienteWBService;
-import com.registroVacinacao.wbservice.VacinaWBService;
+import com.registroVacinacao.clientsService.PacienteService;
+import com.registroVacinacao.clientsService.VacinaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.Cacheable;
@@ -18,14 +18,14 @@ import java.util.stream.StreamSupport;
 @Service
 public class PacienteVacinaService {
     private final RegistroVacinacaoService registroVacinacaoService;
-    private final PacienteWBService pacienteWBService;
-    private final VacinaWBService vacinaWBService;
+    private final PacienteService pacienteService;
+    private final VacinaService vacinaService;
 
     @Autowired
-    public PacienteVacinaService(RegistroVacinacaoService registroVacinacaoService, PacienteWBService pacienteWBService, VacinaWBService vacinaWBService, CacheManager cacheManager) {
+    public PacienteVacinaService(RegistroVacinacaoService registroVacinacaoService, PacienteService pacienteService, VacinaService vacinaService, CacheManager cacheManager) {
         this.registroVacinacaoService = registroVacinacaoService;
-        this.pacienteWBService = pacienteWBService;
-        this.vacinaWBService = vacinaWBService;
+        this.pacienteService = pacienteService;
+        this.vacinaService = vacinaService;
         this.cacheManager = cacheManager;
     }
 
@@ -38,7 +38,7 @@ public class PacienteVacinaService {
                     .filter(registro -> pacienteId.equals(registro.getIdentificacaoPaciente()))
                     .collect(Collectors.toList());
 
-            JsonNode dadosPacientes = pacienteWBService.buscarPaciente(pacienteId);
+            JsonNode dadosPacientes = pacienteService.buscarPaciente(pacienteId);
 
             return registrosDoPaciente.stream()
                     .map(registro -> {
@@ -56,7 +56,7 @@ public class PacienteVacinaService {
 
     public Map<String, Object> listarTotalVacinasAplicadas(String estado) {
         try {
-            JsonNode dadosPacientes = pacienteWBService.listarTodosPacientes();
+            JsonNode dadosPacientes = pacienteService.listarTodosPacientes();
             List<RegistroVacinacao> dadosRegistroVacinacao = registroVacinacaoService.listarRegistroVacinacao();
 
             int totalVacinasAplicadas = calcularTotalVacinasAplicadas(dadosPacientes, dadosRegistroVacinacao, estado);
@@ -95,8 +95,8 @@ public class PacienteVacinaService {
     public List<Map<String, Object>> listarPacientesComDosesAtrasadas(String estado) {
 
         try {
-            JsonNode dadosPacientes = pacienteWBService.listarTodosPacientes();
-            JsonNode dadosVacinas = vacinaWBService.listarTodasVacinas();
+            JsonNode dadosPacientes = pacienteService.listarTodosPacientes();
+            JsonNode dadosVacinas = vacinaService.listarTodasVacinas();
             List<RegistroVacinacao> dadosRegistroVacinacao = registroVacinacaoService.listarRegistroVacinacao();
 
             return calcularPacientesComDosesAtrasadas(dadosPacientes, dadosVacinas, dadosRegistroVacinacao, estado);
@@ -192,7 +192,7 @@ public class PacienteVacinaService {
     }
 
     public Map<String, Object> listarVacinasAplicadasFabricante(String fabricante, String estado) {
-        JsonNode dadosVacinas = vacinaWBService.listarTodasVacinas();
+        JsonNode dadosVacinas = vacinaService.listarTodasVacinas();
         List<Map<String, Object>> registrosComPacientes = combinarRegistroComPaciente();
 
         int totalPessoasVacinadas = calcularTotalPessoasVacinadas(registrosComPacientes, dadosVacinas, fabricante, estado);
@@ -218,7 +218,7 @@ public class PacienteVacinaService {
     }
 
     private List<Map<String, Object>> combinarRegistroComPaciente() {
-        JsonNode dadosPacientes = pacienteWBService.listarTodosPacientes();
+        JsonNode dadosPacientes = pacienteService.listarTodosPacientes();
         List<RegistroVacinacao> dadosRegistroVacinacao = registroVacinacaoService.listarRegistroVacinacao();
 
         return dadosRegistroVacinacao.stream().map(registro -> {
