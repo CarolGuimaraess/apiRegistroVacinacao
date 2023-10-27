@@ -1,14 +1,18 @@
 package com.registroVacinacao.service;
 
+import com.registroVacinacao.entity.Log;
 import com.registroVacinacao.entity.RegistroVacinacao;
 import com.registroVacinacao.repository.RegistroVacinacaoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 import java.util.Optional;
@@ -22,6 +26,25 @@ public class RegistroVacinacaoService {
     public RegistroVacinacaoService(CacheManager cacheManager, RegistroVacinacaoRepository registroVacinacaoRepository) {
         this.cacheManager = cacheManager;
         this.registroVacinacaoRepository = registroVacinacaoRepository;
+    }
+
+    @Autowired
+    private MongoTemplate mongoTemplate;
+
+    public void registrarLog(String metodo, String acao, String mensagem, int statusCode) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String data = dateFormat.format(new Date());
+
+        Log log = new Log();
+        log.setTimestamp(data);
+        log.setLevel("INFO");
+        log.setMethod(metodo);
+        log.setAction(acao);
+        log.setStatusCode(statusCode);
+
+        log.setMessage(mensagem);
+
+        mongoTemplate.insert(log, "log");
     }
 
     private final CacheManager cacheManager;
