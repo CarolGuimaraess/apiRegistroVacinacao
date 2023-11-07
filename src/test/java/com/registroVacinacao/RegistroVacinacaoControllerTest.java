@@ -151,4 +151,93 @@ public class RegistroVacinacaoControllerTest {
         // Verify
         verify(registroVacinacaoService, times(1)).criarRegistroVacinacao(registro);
     }
+    @Test
+    @DisplayName("Deve alterar as informações de um registro de vacinação já existente no banco de dados.")
+    public void testAlterarRegistroVacinacao() throws java.lang.Exception  {
+
+        // Arrange
+        RegistroVacinacao registro = new RegistroVacinacao();
+        registro.setId("123S123SA58");
+        registro.setNomeProfissional("Bernado");
+        registro.setSobrenomeProfissional("Silva");
+        registro.setDataVacinacao(LocalDate.of(2023, 1, 15));
+        registro.setCpfProfissional("12345677500");
+        registro.setIdentificacaoPaciente("Paciente5");
+        registro.setIdentificacaoVacina("VacinaE");
+        registro.setIdentificacaoDose("Primeira Dose");
+
+        // Mock
+        when(registroVacinacaoService.buscarRegistroVacinacao(registro.getId())).thenReturn(registro);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.configure(SerializationFeature.INDENT_OUTPUT, false);
+        String registroVacinacaoJson = objectMapper.writeValueAsString(registro);
+
+        // Act & Assert
+        mockMvc.perform(MockMvcRequestBuilders.post("/registro-vacinacao")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(registroVacinacaoJson))
+                .andExpect(MockMvcResultMatchers.status().isCreated());
+
+        registro.setNomeProfissional("Caroline");
+
+        String updatedRegistroVacinacaoJson = objectMapper.writeValueAsString(registro);
+
+        // Mock
+        when(registroVacinacaoService.atualizarRegistroVacinacao(eq(registro.getId()), any(RegistroVacinacao.class))).thenReturn(registro);
+
+        // Act & Assert
+        mockMvc.perform(MockMvcRequestBuilders.put("/registro-vacinacao/" + registro.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updatedRegistroVacinacaoJson))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(registro.getId()))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.nomeProfissional").value(registro.getNomeProfissional()));
+
+        // Verify
+        verify(registroVacinacaoService, times(1)).atualizarRegistroVacinacao(eq(registro.getId()), any(RegistroVacinacao.class));
+    }
+    @Test
+    @DisplayName("Deve excluir um registro de vacinação existente do banco de dados.")
+    public void testExcluirRegistroVacinacao() throws java.lang.Exception {
+
+        // Arrange
+        RegistroVacinacao registro = new RegistroVacinacao();
+        registro.setId("123S123SA58");
+        registro.setNomeProfissional("Bernado");
+        registro.setSobrenomeProfissional("Silva");
+        registro.setDataVacinacao(LocalDate.of(2023, 1, 15));
+        registro.setCpfProfissional("12345677500");
+        registro.setIdentificacaoPaciente("Paciente5");
+        registro.setIdentificacaoVacina("VacinaE");
+        registro.setIdentificacaoDose("Primeira Dose");
+
+        // Mock
+        when(registroVacinacaoService.buscarRegistroVacinacao(registro.getId())).thenReturn(registro);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.configure(SerializationFeature.INDENT_OUTPUT, false);
+        String registroVacinacaoJson = objectMapper.writeValueAsString(registro);
+
+        // Act & Assert
+        mockMvc.perform(MockMvcRequestBuilders.post("/registro-vacinacao")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(registroVacinacaoJson))
+                .andExpect(MockMvcResultMatchers.status().isCreated());
+
+        // Mock
+        doNothing().when(registroVacinacaoService).excluirRegistroVacinacao(eq(registro.getId()));
+
+        // Act & Assert
+        mockMvc.perform(MockMvcRequestBuilders.delete("/registro-vacinacao/" + registro.getId())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isNoContent());
+
+        // Verify
+        verify(registroVacinacaoService, times(1)).excluirRegistroVacinacao(eq(registro.getId()));
+    }
+
 }
