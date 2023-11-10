@@ -1,5 +1,7 @@
 package com.registroVacinacao;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -9,6 +11,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.registroVacinacao.entity.RegistroVacinacao;
 import com.registroVacinacao.service.RegistroVacinacaoService;
+import org.apache.velocity.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -16,12 +19,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -37,7 +42,7 @@ public class RegistroVacinacaoControllerTest {
 
     @Test
     @DisplayName("Deve ser possível obter todos os registros de vacinação")
-    public void testObterTodosOsRegistroVacinacao() throws java.lang.Exception {
+    public void testeObterTodosOsRegistroVacinacao() throws java.lang.Exception {
 
         RegistroVacinacao registro1 = new RegistroVacinacao();
         registro1.setNomeProfissional("João");
@@ -85,8 +90,27 @@ public class RegistroVacinacaoControllerTest {
     }
 
     @Test
+    @DisplayName("Deve retornar uma lista vazia quando não há registro de vacinacão cadastradas")
+    public void testeObterListaVazia() throws java.lang.Exception {
+        // Arrange
+        List<RegistroVacinacao> registroVacinacao = new ArrayList<>();
+
+        // Mock
+        when(registroVacinacaoService.listarRegistroVacinacao()).thenReturn(registroVacinacao);
+
+        // Act & Assert
+        mockMvc.perform(MockMvcRequestBuilders.get("/registro-vacinacao"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(0));
+
+        // Verify
+        verify(registroVacinacaoService, times(2)).listarRegistroVacinacao();
+    }
+
+    @Test
     @DisplayName("Deve ser possível obter um registro de vacinação pelo ID")
-    public void testObterRegistroVacinacaoPeloId() throws java.lang.Exception {
+    public void testeObterRegistroVacinacaoPeloId() throws java.lang.Exception {
         RegistroVacinacao registro = new RegistroVacinacao();
         registro.setId("123S123SA56");
         registro.setNomeProfissional("João");
@@ -113,9 +137,28 @@ public class RegistroVacinacaoControllerTest {
 
         Mockito.verify(registroVacinacaoService, times(1)).buscarRegistroVacinacao(registro.getId());
     }
+
+    @Test
+    @DisplayName("Deve lançar uma ResourceNotFoundException ao buscar um ID inexistente")
+    public void testeObterVacinaPorIdInexistente() throws java.lang.Exception {
+        // Arrange
+        String idInexistente = "999";
+
+        // Mock
+        when(registroVacinacaoService.buscarRegistroVacinacao(idInexistente)).thenThrow(ResourceNotFoundException.class);
+
+        // Act & Assert
+        mockMvc.perform(MockMvcRequestBuilders.get("/registro-vacinacao/" + idInexistente))
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+
+        // Verify
+        verify(registroVacinacaoService, times(1)).buscarRegistroVacinacao(idInexistente);
+    }
+
     @Test
     @DisplayName("Deve adicionar um registro de vacinação")
-    public void testAdicionarRegistroVacincao() throws java.lang.Exception {
+    public void testeAdicionarRegistroVacincao() throws java.lang.Exception {
         RegistroVacinacao registro = new RegistroVacinacao();
         registro.setId("123S123SA57");
         registro.setNomeProfissional("Marcos");
@@ -151,9 +194,76 @@ public class RegistroVacinacaoControllerTest {
         // Verify
         verify(registroVacinacaoService, times(1)).criarRegistroVacinacao(registro);
     }
+
+    @Test
+    @DisplayName("Deve retornar erro ao tentar inserir um registro vacinação no banco de dados com valores nulos.")
+    public void testeTentarInserirRegistroVacinacaoComInformacoesNulas() throws java.lang.Exception {
+        // Arrange
+        RegistroVacinacao registroVacinacao = new RegistroVacinacao();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.configure(SerializationFeature.INDENT_OUTPUT, false);
+        String registroVacinacaoJson = objectMapper.writeValueAsString(registroVacinacao);
+
+        // Act & Assert
+        mockMvc.perform(MockMvcRequestBuilders.post("/registro-vacinacao")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(registroVacinacaoJson))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest()) // Status esperado agora é BAD REQUEST (400)
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.[*]").value(
+                        containsInAnyOrder(
+                                "Nome não pode estar em branco.",
+                                "Nome não pode ser nulo.",
+                                "Sobrenome não pode estar em branco.",
+                                "Sobrenome não pode ser nulo.",
+                                "Data não pode estar em branco.",
+                                "CPF não pode estar em branco.",
+                                "CPF não pode ser nulo.",
+                                "Paciente não pode estar em branco.",
+                                "Paciente não pode ser nulo.",
+                                "Vacina não pode estar em branco.",
+                                "Vacina não pode ser nula.",
+                                "Dose não pode estar em branco.",
+                                "Dose não pode ser nula."
+                        )
+                ));
+    }
+
+    @Test
+    @DisplayName("Deve retornar erro ao tentar inserir um registro vacinacao no banco de dados com valores em branco.")
+    public void testeTentarInserirRegistroVacinacaoComInformacoesEmBranco() throws java.lang.Exception {
+        // Arrange
+        RegistroVacinacao registroVacinacao = new RegistroVacinacao("", "", "", null, "", "", "", "");
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.configure(SerializationFeature.INDENT_OUTPUT, false);
+        String registroVacinacaoJson = objectMapper.writeValueAsString(registroVacinacao);
+
+        // Act & Assert
+        mockMvc.perform(MockMvcRequestBuilders.post("/registro-vacinacao")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(registroVacinacaoJson))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest()) // Status esperado agora é BAD REQUEST (400)
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.[*]").value(
+                        containsInAnyOrder(
+                                "Nome não pode estar em branco.",
+                                "Sobrenome não pode estar em branco.",
+                                "Data não pode estar em branco.",
+                                "CPF não pode estar em branco.",
+                                "Paciente não pode estar em branco.",
+                                "Vacina não pode estar em branco.",
+                                "Dose não pode estar em branco."
+                        )
+                ));
+    }
+
     @Test
     @DisplayName("Deve alterar as informações de um registro de vacinação já existente no banco de dados.")
-    public void testAlterarRegistroVacinacao() throws java.lang.Exception  {
+    public void testeAlterarRegistroVacinacao() throws java.lang.Exception {
 
         // Arrange
         RegistroVacinacao registro = new RegistroVacinacao();
@@ -199,9 +309,52 @@ public class RegistroVacinacaoControllerTest {
         // Verify
         verify(registroVacinacaoService, times(1)).atualizarRegistroVacinacao(eq(registro.getId()), any(RegistroVacinacao.class));
     }
+
+    @Test
+    @DisplayName("Deve retornar erro ao tentar atualizar um registro vacinacao no banco de dados com informações em branco.")
+    public void testeTentarAtualizarRegistroVacinacaoComInformacoesEmBranco() throws java.lang.Exception {
+        // Arrange
+        RegistroVacinacao registro = new RegistroVacinacao("123S123SA58", "Bernado", "Silva", LocalDate.of(2023, 11, 8), "12345677500", "Paciente5", "VacinaE", "Primeira Dose");
+
+        // Mock: Quando o serviço de registro vacinação tentar atualizar, lance uma exceção de validação
+        doThrow(new DataIntegrityViolationException("Erro de validação.")).when(registroVacinacaoService).atualizarRegistroVacinacao(eq(registro.getId()), any(RegistroVacinacao.class));
+
+        RegistroVacinacao registroVacinacaoEmBranco = new RegistroVacinacao();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        String registroVacinacaoJson = objectMapper.writeValueAsString(registroVacinacaoEmBranco);
+
+        // Act & Assert: Envie uma solicitação PUT para atualizar o registro de vacinacao com informações em branco
+        mockMvc.perform(MockMvcRequestBuilders.put("/registro-vacinacao/" + registro.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(registroVacinacaoJson))
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andExpect(MockMvcResultMatchers.content().string(""));
+        // Verify
+        verify(registroVacinacaoService, times(1)).atualizarRegistroVacinacao(eq(registro.getId()), any(RegistroVacinacao.class));
+    }
+
+    @Test
+    @DisplayName("Deve ser retornar erro quando tenta alterar um registro de vacinação utilizando um id que não consta no banco de dados.")
+    public void testeAlterarRegistroVacinacaoInformacaoComIdInvalido() throws java.lang.Exception {
+        //Arrange
+        String id = "12312321131311";
+
+        //Mock
+        when(registroVacinacaoService.atualizarRegistroVacinacao(id, null)).thenThrow(ResourceNotFoundException.class);
+
+        //Act & Assert
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/registro-vacinacao/" + id)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isNotFound())
+                .andExpect(MockMvcResultMatchers.content().string((containsString("O registro vacinação não foi encontrado"))));
+
+    }
+
     @Test
     @DisplayName("Deve excluir um registro de vacinação existente do banco de dados.")
-    public void testExcluirRegistroVacinacao() throws java.lang.Exception {
+    public void testeExcluirRegistroVacinacao() throws java.lang.Exception {
 
         // Arrange
         RegistroVacinacao registro = new RegistroVacinacao();
