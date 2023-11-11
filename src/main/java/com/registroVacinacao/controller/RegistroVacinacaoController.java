@@ -1,6 +1,7 @@
 package com.registroVacinacao.controller;
 
 import com.registroVacinacao.entity.RegistroVacinacao;
+import com.registroVacinacao.exception.TratamentoParaErrosCliente;
 import com.registroVacinacao.service.RegistroVacinacaoService;
 import com.registroVacinacao.service.PacienteVacinaService;
 import com.registroVacinacao.clientsService.PacienteService;
@@ -32,11 +33,13 @@ public class RegistroVacinacaoController {
     private VacinaService vacinaService;
     @Autowired
     private PacienteVacinaService pacienteVacinaService;
+    @Autowired
+    private final TratamentoParaErrosCliente tratamentoDeErros;
 
     @GetMapping
     public ResponseEntity<List<RegistroVacinacao>> listarRegistroVacinacao() {
         int statusCode = HttpServletResponse.SC_OK;
-        registroVacinacaoService.registrarLog("GET" , "Listar Registro de Vacinação", registroVacinacaoService.listarRegistroVacinacao().toString(), statusCode);
+        registroVacinacaoService.registrarLog("GET", "Listar Registro de Vacinação", registroVacinacaoService.listarRegistroVacinacao().toString(), statusCode);
         return ResponseEntity.ok().body(registroVacinacaoService.listarRegistroVacinacao());
     }
 
@@ -45,7 +48,7 @@ public class RegistroVacinacaoController {
         try {
             RegistroVacinacao registroVacinacao = registroVacinacaoService.buscarRegistroVacinacao(id);
             int statusCode = HttpServletResponse.SC_OK;
-            registroVacinacaoService.registrarLog("GET" , "Listar Registro de Vacinação por id", registroVacinacao.toString(), statusCode);
+            registroVacinacaoService.registrarLog("GET", "Listar Registro de Vacinação por id", registroVacinacao.toString(), statusCode);
 
             return ResponseEntity.ok().body(registroVacinacao);
 
@@ -55,7 +58,7 @@ public class RegistroVacinacaoController {
 
             resposta.put("mensagem", e.getMessage());
             int statusCode = HttpServletResponse.SC_NOT_FOUND;
-            registroVacinacaoService.registrarLog("GET" , "Listar Registro de Vacinação por id", e.getMessage(), statusCode);
+            registroVacinacaoService.registrarLog("GET", "Listar Registro de Vacinação por id", e.getMessage(), statusCode);
 
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(resposta);
         }
@@ -74,14 +77,14 @@ public class RegistroVacinacaoController {
                     .collect(Collectors.toList());
 
             int statusCode = HttpServletResponse.SC_BAD_REQUEST;
-            registroVacinacaoService.registrarLog("POST" , "Criar Registro de Vacinação", erros.toString(), statusCode);
+            registroVacinacaoService.registrarLog("POST", "Criar Registro de Vacinação", erros.toString(), statusCode);
 
             return ResponseEntity.badRequest().body(erros.toArray());
         }
         registroVacinacaoService.criarRegistroVacinacao(registroVacinacao);
 
         int statusCode = HttpServletResponse.SC_OK;
-        registroVacinacaoService.registrarLog("POST" , "Criar Registro de Vacinação", registroVacinacao.toString(), statusCode);
+        registroVacinacaoService.registrarLog("POST", "Criar Registro de Vacinação", registroVacinacao.toString(), statusCode);
 
         return ResponseEntity.created(null).body(registroVacinacao);
     }
@@ -89,23 +92,34 @@ public class RegistroVacinacaoController {
     @PutMapping("/{id}")
     public ResponseEntity<?> atualizarRegistroVacinacao(
             @PathVariable String id,
-            @RequestBody RegistroVacinacao registroVacinacao
+            @RequestBody @Valid RegistroVacinacao registroVacinacao,
+            BindingResult bindingResult
     ) {
+        if (bindingResult.hasErrors()) {
+
+            int statusCode = HttpServletResponse.SC_BAD_REQUEST;
+            registroVacinacaoService.registrarLog("PUT", "Erro ao atualizar Registro de Vacinação", "Objeto: " + registroVacinacao, statusCode);
+
+            return ResponseEntity.badRequest().body(bindingResult
+                    .getAllErrors()
+                    .stream()
+                    .map(DefaultMessageSourceResolvable::getDefaultMessage).toArray());
+
+        }
         try {
             RegistroVacinacao registroVacinacaoAtualizado = registroVacinacaoService.atualizarRegistroVacinacao(id, registroVacinacao);
 
             int statusCode = HttpServletResponse.SC_OK;
-            registroVacinacaoService.registrarLog("PUT" , "Atualizar Registro de Vacinação", registroVacinacaoAtualizado.toString(), statusCode);
+            registroVacinacaoService.registrarLog("PUT", "Atualizar Registro de Vacinação", registroVacinacaoAtualizado.toString(), statusCode);
 
             return ResponseEntity.ok().body(registroVacinacaoAtualizado);
         } catch (Exception e) {
-            Map<String, String> resposta = new HashMap<>();
-            resposta.put("mensagem", e.getMessage());
+            ResponseEntity<String> respostaErro = tratamentoDeErros.lidarComErrosNotFound(e);
 
             int statusCode = HttpServletResponse.SC_NOT_FOUND;
-            registroVacinacaoService.registrarLog("PUT" , "Atualizar Registro de Vacinação", e.getMessage(), statusCode);
+            registroVacinacaoService.registrarLog("PUT", "Atualizar Registro de Vacinação", e.getMessage(), statusCode);
 
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            throw new RuntimeException(respostaErro.getBody());
         }
     }
 
@@ -118,7 +132,7 @@ public class RegistroVacinacaoController {
             registroVacinacaoService.excluirRegistroVacinacao(id);
 
             int statusCode = HttpServletResponse.SC_NO_CONTENT;
-            registroVacinacaoService.registrarLog("DELETE" , "Deletar Registro de Vacinação", registroVacinacao.toString(), statusCode);
+            registroVacinacaoService.registrarLog("DELETE", "Deletar Registro de Vacinação", registroVacinacao.toString(), statusCode);
 
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
@@ -126,7 +140,7 @@ public class RegistroVacinacaoController {
             resposta.put("mensagem", e.getMessage());
 
             int statusCode = HttpServletResponse.SC_NOT_FOUND;
-            registroVacinacaoService.registrarLog("DELETE" , "Deletar Registro de Vacinação", id, statusCode);
+            registroVacinacaoService.registrarLog("DELETE", "Deletar Registro de Vacinação", id, statusCode);
 
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
@@ -139,13 +153,13 @@ public class RegistroVacinacaoController {
             if (dosesInfo.isEmpty()) {
 
                 int statusCode = HttpServletResponse.SC_NOT_FOUND;
-                pacienteVacinaService.registrarLog("GET" , "Listar doses de Pacientes", pacienteId, statusCode);
+                pacienteVacinaService.registrarLog("GET", "Listar doses de Pacientes", pacienteId, statusCode);
 
                 return ResponseEntity.notFound().build();
             }
 
             int statusCode = HttpServletResponse.SC_OK;
-            pacienteVacinaService.registrarLog("GET" , "Listar doses de Pacientes", dosesInfo.toString(), statusCode);
+            pacienteVacinaService.registrarLog("GET", "Listar doses de Pacientes", dosesInfo.toString(), statusCode);
 
             return ResponseEntity.ok(dosesInfo);
         } catch (Exception e) {
@@ -153,7 +167,7 @@ public class RegistroVacinacaoController {
             resposta.put("mensagem", e.getMessage());
 
             int statusCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-            pacienteVacinaService.registrarLog("GET" , "Listar doses de Pacientes", e.getMessage(), statusCode);
+            pacienteVacinaService.registrarLog("GET", "Listar doses de Pacientes", e.getMessage(), statusCode);
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resposta);
         }
@@ -168,20 +182,20 @@ public class RegistroVacinacaoController {
             if (requestParams.size() > 1 || (requestParams.size() == 1 && !requestParams.containsKey("estado"))) {
 
                 int statusCode = HttpServletResponse.SC_BAD_REQUEST;
-                pacienteVacinaService.registrarLog("GET" , "Listar Total de Vacinas Aplicadas", requestParams.toString(), statusCode);
+                pacienteVacinaService.registrarLog("GET", "Listar Total de Vacinas Aplicadas", requestParams.toString(), statusCode);
 
                 return ResponseEntity.badRequest().body("Erro: Parâmetros não permitidos na solicitação.");
             }
             List<Map<String, Object>> resposta = Collections.singletonList(pacienteVacinaService.listarTotalVacinasAplicadas(estado));
 
             int statusCode = HttpServletResponse.SC_OK;
-            pacienteVacinaService.registrarLog("GET" , "Listar Total de Vacinas Aplicadas", resposta.toString(), statusCode);
+            pacienteVacinaService.registrarLog("GET", "Listar Total de Vacinas Aplicadas", resposta.toString(), statusCode);
 
             return ResponseEntity.ok(resposta);
         } catch (Exception e) {
 
             int statusCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-            pacienteVacinaService.registrarLog("GET" , "Listar Total de Vacinas Aplicadas", e.getMessage(), statusCode);
+            pacienteVacinaService.registrarLog("GET", "Listar Total de Vacinas Aplicadas", e.getMessage(), statusCode);
 
             return ResponseEntity.internalServerError().body("Erro ao listar o total de vacinas aplicadas: " + e.getMessage());
         }
@@ -195,26 +209,27 @@ public class RegistroVacinacaoController {
             if (requestParams.size() > 1 || (requestParams.size() == 1 && !requestParams.containsKey("estado"))) {
 
                 int statusCode = HttpServletResponse.SC_BAD_REQUEST;
-                pacienteVacinaService.registrarLog("GET" , "Listar Pacientes com Doses Atrasadas", requestParams.toString(), statusCode);
+                pacienteVacinaService.registrarLog("GET", "Listar Pacientes com Doses Atrasadas", requestParams.toString(), statusCode);
 
                 return ResponseEntity.badRequest().body("Erro: Parâmetros não permitidos na solicitação.");
             }
             List<Map<String, Object>> resposta = pacienteVacinaService.listarPacientesComDosesAtrasadas(estado);
 
             int statusCode = HttpServletResponse.SC_OK;
-            pacienteVacinaService.registrarLog("GET" , "Listar Pacientes com Doses Atrasadas", resposta.toString(), statusCode);
+            pacienteVacinaService.registrarLog("GET", "Listar Pacientes com Doses Atrasadas", resposta.toString(), statusCode);
 
             return ResponseEntity.ok(resposta);
-        }catch (Exception e) {
+        } catch (Exception e) {
             Map<String, String> resposta = new HashMap<>();
             resposta.put("mensagem", e.getMessage());
 
             int statusCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-            pacienteVacinaService.registrarLog("GET" , "Listar Pacientes com Doses Atrasadas", e.getMessage(), statusCode);
+            pacienteVacinaService.registrarLog("GET", "Listar Pacientes com Doses Atrasadas", e.getMessage(), statusCode);
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resposta);
         }
     }
+
     @GetMapping("/pacientes/vacinas/aplicadas")
     public ResponseEntity<?> listarVacinasAplicadasFabricante(
             @RequestParam(name = "fabricante") String fabricante,
@@ -223,7 +238,7 @@ public class RegistroVacinacaoController {
             Map<String, Object> resposta = pacienteVacinaService.listarVacinasAplicadasFabricante(fabricante, estado);
 
             int statusCode = HttpServletResponse.SC_OK;
-            pacienteVacinaService.registrarLog("GET" , "Listar Vacinas Aplicadas", resposta.toString(), statusCode);
+            pacienteVacinaService.registrarLog("GET", "Listar Vacinas Aplicadas", resposta.toString(), statusCode);
 
             return ResponseEntity.ok(resposta);
         } catch (Exception e) {
@@ -231,7 +246,7 @@ public class RegistroVacinacaoController {
             resposta.put("mensagem", e.getMessage());
 
             int statusCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-            pacienteVacinaService.registrarLog("GET" , "Listar Vacinas Aplicadas", e.getMessage(), statusCode);
+            pacienteVacinaService.registrarLog("GET", "Listar Vacinas Aplicadas", e.getMessage(), statusCode);
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resposta);
         }

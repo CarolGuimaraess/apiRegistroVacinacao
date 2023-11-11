@@ -1,11 +1,5 @@
 package com.registroVacinacao;
 
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.containsString;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -19,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -29,6 +22,11 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.containsString;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -164,7 +162,7 @@ public class RegistroVacinacaoControllerTest {
         registro.setNomeProfissional("Marcos");
         registro.setSobrenomeProfissional("Silva");
         registro.setDataVacinacao(LocalDate.of(2023, 1, 15));
-        registro.setCpfProfissional("12345677900");
+        registro.setCpfProfissional("89453598003");
         registro.setIdentificacaoPaciente("Paciente4");
         registro.setIdentificacaoVacina("VacinaD");
         registro.setIdentificacaoDose("Primeira Dose");
@@ -214,19 +212,13 @@ public class RegistroVacinacaoControllerTest {
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.[*]").value(
                         containsInAnyOrder(
-                                "Nome não pode estar em branco.",
-                                "Nome não pode ser nulo.",
-                                "Sobrenome não pode estar em branco.",
-                                "Sobrenome não pode ser nulo.",
+                                "Nome não pode ser nulo e não pode estar em branco.",
+                                "Sobrenome não pode ser nulo e não pode estar em branco.",
                                 "Data não pode estar em branco.",
-                                "CPF não pode estar em branco.",
-                                "CPF não pode ser nulo.",
-                                "Paciente não pode estar em branco.",
-                                "Paciente não pode ser nulo.",
-                                "Vacina não pode estar em branco.",
-                                "Vacina não pode ser nula.",
-                                "Dose não pode estar em branco.",
-                                "Dose não pode ser nula."
+                                "CPF não pode ser nulo e não pode estar em branco.",
+                                "Paciente não pode ser nulo e não pode estar em branco.",
+                                "Vacina não pode ser nula e não pode estar em branco.",
+                                "Dose não pode ser nula e não pode estar em branco."
                         )
                 ));
     }
@@ -250,13 +242,14 @@ public class RegistroVacinacaoControllerTest {
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.[*]").value(
                         containsInAnyOrder(
-                                "Nome não pode estar em branco.",
-                                "Sobrenome não pode estar em branco.",
+                                "Nome não pode ser nulo e não pode estar em branco.",
+                                "Sobrenome não pode ser nulo e não pode estar em branco.",
                                 "Data não pode estar em branco.",
-                                "CPF não pode estar em branco.",
-                                "Paciente não pode estar em branco.",
-                                "Vacina não pode estar em branco.",
-                                "Dose não pode estar em branco."
+                                "CPF não pode ser nulo e não pode estar em branco.",
+                                "Paciente não pode ser nulo e não pode estar em branco.",
+                                "Vacina não pode ser nula e não pode estar em branco.",
+                                "Dose não pode ser nula e não pode estar em branco.",
+                                "invalid Brazilian individual taxpayer registry number (CPF)"
                         )
                 ));
     }
@@ -271,7 +264,7 @@ public class RegistroVacinacaoControllerTest {
         registro.setNomeProfissional("Bernado");
         registro.setSobrenomeProfissional("Silva");
         registro.setDataVacinacao(LocalDate.of(2023, 1, 15));
-        registro.setCpfProfissional("12345677500");
+        registro.setCpfProfissional("89453598003");
         registro.setIdentificacaoPaciente("Paciente5");
         registro.setIdentificacaoVacina("VacinaE");
         registro.setIdentificacaoDose("Primeira Dose");
@@ -311,27 +304,36 @@ public class RegistroVacinacaoControllerTest {
     }
 
     @Test
-    @DisplayName("Deve retornar erro ao tentar atualizar um registro vacinacao no banco de dados com informações em branco.")
-    public void testeTentarAtualizarRegistroVacinacaoComInformacoesEmBranco() throws java.lang.Exception {
-        // Arrange
-        RegistroVacinacao registro = new RegistroVacinacao("123S123SA58", "Bernado", "Silva", LocalDate.of(2023, 11, 8), "12345677500", "Paciente5", "VacinaE", "Primeira Dose");
+    @DisplayName("Deve retornar erro ao tentar atualizar um registro vacinação no banco de dados com informações nulas.")
+    public void testeTentarAtualizarRegistroVacinacaoComInformacoesNulas() throws Exception {
+        RegistroVacinacao registro = new RegistroVacinacao("123S123SA58", "Bernardo", "Silva", LocalDate.of(2023, 11, 8), "71013857020", "Paciente5", "VacinaE", "Primeira Dose");
 
-        // Mock: Quando o serviço de registro vacinação tentar atualizar, lance uma exceção de validação
-        doThrow(new DataIntegrityViolationException("Erro de validação.")).when(registroVacinacaoService).atualizarRegistroVacinacao(eq(registro.getId()), any(RegistroVacinacao.class));
-
-        RegistroVacinacao registroVacinacaoEmBranco = new RegistroVacinacao();
+        when(registroVacinacaoService.buscarRegistroVacinacao(registro.getId())).thenReturn(registro);
 
         ObjectMapper objectMapper = new ObjectMapper();
-        String registroVacinacaoJson = objectMapper.writeValueAsString(registroVacinacaoEmBranco);
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.configure(SerializationFeature.INDENT_OUTPUT, false);
+        String registroVacinacaoJson = objectMapper.writeValueAsString(registro);
 
-        // Act & Assert: Envie uma solicitação PUT para atualizar o registro de vacinacao com informações em branco
-        mockMvc.perform(MockMvcRequestBuilders.put("/registro-vacinacao/" + registro.getId())
+        mockMvc.perform(MockMvcRequestBuilders.post("/registro-vacinacao")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(registroVacinacaoJson))
-                .andExpect(MockMvcResultMatchers.status().isNotFound())
-                .andExpect(MockMvcResultMatchers.content().string(""));
-        // Verify
-        verify(registroVacinacaoService, times(1)).atualizarRegistroVacinacao(eq(registro.getId()), any(RegistroVacinacao.class));
+                .andExpect(MockMvcResultMatchers.status().isCreated())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+
+        RegistroVacinacao registroVacinacaoAtualizado = new RegistroVacinacao();
+        registroVacinacaoAtualizado.setId(registro.getId());  // Define o ID do registro a ser atualizado
+
+        when(registroVacinacaoService.atualizarRegistroVacinacao(eq(registroVacinacaoAtualizado.getId()), any(RegistroVacinacao.class)))
+                .thenReturn(registroVacinacaoAtualizado);
+
+        String updatedPacienteJson = objectMapper.writeValueAsString(registroVacinacaoAtualizado);
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/registro-vacinacao/" + registro.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updatedPacienteJson))
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
     }
 
     @Test
@@ -348,7 +350,7 @@ public class RegistroVacinacaoControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.put("/registro-vacinacao/" + id)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.status().isNotFound())
-                .andExpect(MockMvcResultMatchers.content().string((containsString("O registro vacinação não foi encontrado"))));
+                .andExpect(MockMvcResultMatchers.content().string((containsString("O registro de vacinação não foi encontrado."))));
 
     }
 
@@ -362,7 +364,7 @@ public class RegistroVacinacaoControllerTest {
         registro.setNomeProfissional("Bernado");
         registro.setSobrenomeProfissional("Silva");
         registro.setDataVacinacao(LocalDate.of(2023, 1, 15));
-        registro.setCpfProfissional("12345677500");
+        registro.setCpfProfissional("89453598003");
         registro.setIdentificacaoPaciente("Paciente5");
         registro.setIdentificacaoVacina("VacinaE");
         registro.setIdentificacaoDose("Primeira Dose");
