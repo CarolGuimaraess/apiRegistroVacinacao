@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -84,17 +86,22 @@ public class RegistroVacinacaoService {
     public RegistroVacinacao atualizarRegistroVacinacao(String id, RegistroVacinacao registroVacinacao) throws Exception {
         RegistroVacinacao registroVacinacaoAntigo = buscarRegistroVacinacao(id);
 
-        registroVacinacaoAntigo.setNomeProfissional(registroVacinacao.getNomeProfissional());
-        registroVacinacaoAntigo.setSobrenomeProfissional(registroVacinacao.getSobrenomeProfissional());
-        registroVacinacaoAntigo.setDataVacinacao(registroVacinacao.getDataVacinacao());
-        registroVacinacaoAntigo.setCpfProfissional(registroVacinacao.getCpfProfissional());
-        registroVacinacaoAntigo.setIdentificacaoPaciente(registroVacinacao.getIdentificacaoPaciente());
-        registroVacinacaoAntigo.setIdentificacaoVacina(registroVacinacao.getIdentificacaoVacina());
-        registroVacinacaoAntigo.setIdentificacaoDose(registroVacinacao.getIdentificacaoDose());
+        if (registroVacinacaoAntigo.getIdentificacaoVacina().equals(registroVacinacao.getIdentificacaoVacina())){
 
-        registroVacinacaoRepository.save(registroVacinacaoAntigo);
+            registroVacinacaoAntigo.setNomeProfissional(registroVacinacao.getNomeProfissional());
+            registroVacinacaoAntigo.setSobrenomeProfissional(registroVacinacao.getSobrenomeProfissional());
+            registroVacinacaoAntigo.setDataVacinacao(registroVacinacao.getDataVacinacao());
+            registroVacinacaoAntigo.setCpfProfissional(registroVacinacao.getCpfProfissional());
+            registroVacinacaoAntigo.setIdentificacaoPaciente(registroVacinacao.getIdentificacaoPaciente());
+            registroVacinacaoAntigo.setIdentificacaoVacina(registroVacinacao.getIdentificacaoVacina());
+            registroVacinacaoAntigo.setIdentificacaoDose(registroVacinacao.getIdentificacaoDose());
 
-        return registroVacinacaoAntigo;
+            registroVacinacaoRepository.save(registroVacinacaoAntigo);
+
+            return registroVacinacaoAntigo;
+
+        }else
+            return (RegistroVacinacao) ResponseEntity.status(HttpStatus.NOT_FOUND);
     }
 
     public void excluirRegistroVacinacao(String id) throws Exception {
