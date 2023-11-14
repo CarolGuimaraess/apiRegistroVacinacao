@@ -22,6 +22,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
@@ -288,7 +289,7 @@ public class RegistroVacinacaoControllerTest {
         String updatedRegistroVacinacaoJson = objectMapper.writeValueAsString(registro);
 
         // Mock
-        when(registroVacinacaoService.atualizarRegistroVacinacao(eq(registro.getId()), any(RegistroVacinacao.class))).thenReturn(registro);
+        when(registroVacinacaoService.atualizarRegistroVacinacao(eq(registro.getId()), any(RegistroVacinacao.class))).thenReturn((Map<String, Object>) registro);
 
         // Act & Assert
         mockMvc.perform(MockMvcRequestBuilders.put("/registro-vacinacao/" + registro.getId())
@@ -325,7 +326,7 @@ public class RegistroVacinacaoControllerTest {
         registroVacinacaoAtualizado.setId(registro.getId());  // Define o ID do registro a ser atualizado
 
         when(registroVacinacaoService.atualizarRegistroVacinacao(eq(registroVacinacaoAtualizado.getId()), any(RegistroVacinacao.class)))
-                .thenReturn(registroVacinacaoAtualizado);
+                .thenReturn((Map<String, Object>) registroVacinacaoAtualizado);
 
         String updatedPacienteJson = objectMapper.writeValueAsString(registroVacinacaoAtualizado);
 
