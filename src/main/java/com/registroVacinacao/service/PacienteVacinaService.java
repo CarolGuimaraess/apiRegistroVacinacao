@@ -236,7 +236,7 @@ public class PacienteVacinaService {
         return false;
     }
 
-    private List<Map<String, Object>> combinarRegistroComPaciente() {
+    List<Map<String, Object>> combinarRegistroComPaciente() {
         JsonNode dadosPacientes = pacienteService.listarTodosPacientes();
         List<RegistroVacinacao> dadosRegistroVacinacao = registroVacinacaoService.listarRegistroVacinacao();
 
@@ -259,5 +259,4 @@ public class PacienteVacinaService {
                 .map(Optional::get)
                 .collect(Collectors.toList());
     }
-
 }

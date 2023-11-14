@@ -394,5 +394,19 @@ public class RegistroVacinacaoControllerTest {
         // Verify
         verify(registroVacinacaoService, times(1)).excluirRegistroVacinacao(eq(registro.getId()));
     }
+    @Test
+    @DisplayName("Deve retornar erro ao tentar deletar um registro de vacinação não existente no banco de dados ")
+    public void testeErroAoTentarDeletarRegistroComIdInvalido() throws Exception {
 
+        //Arrange
+        String id = "12312321131311";
+
+        //Mock
+        doThrow(new ResourceNotFoundException("Paciente não encontrado")).when(registroVacinacaoService).excluirRegistroVacinacao(id);
+
+        //Act & Assert
+        mockMvc.perform(MockMvcRequestBuilders.delete("/registro-vacinacao/" + id)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(MockMvcResultMatchers.status().isNotFound());
+    }
 }
