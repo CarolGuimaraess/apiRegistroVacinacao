@@ -1,4 +1,4 @@
-package com.registroVacinacao.exception;
+package com.registro.vacinacao.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -1,4 +1,4 @@
-package com.registroVacinacao.entity;
+package com.registro.vacinacao.entity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

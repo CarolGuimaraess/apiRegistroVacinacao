@@ -1,10 +1,10 @@
-package com.registroVacinacao;
+package com.registro.vacinacao;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.registroVacinacao.entity.RegistroVacinacao;
-import com.registroVacinacao.service.RegistroVacinacaoService;
+import com.registro.vacinacao.entity.RegistroVacinacao;
+import com.registro.vacinacao.service.RegistroVacinacaoService;
 import org.apache.velocity.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

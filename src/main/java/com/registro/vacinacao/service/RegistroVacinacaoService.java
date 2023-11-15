@@ -1,12 +1,11 @@
-package com.registroVacinacao.service;
+package com.registro.vacinacao.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.registroVacinacao.clientsService.PacienteService;
-import com.registroVacinacao.clientsService.VacinaService;
-import com.registroVacinacao.entity.Log;
-import com.registroVacinacao.entity.RegistroVacinacao;
-import com.registroVacinacao.repository.RegistroVacinacaoRepository;
-import lombok.SneakyThrows;
+import com.registro.vacinacao.entity.Log;
+import com.registro.vacinacao.entity.RegistroVacinacao;
+import com.registro.vacinacao.service.client.VacinaClientService;
+import com.registro.vacinacao.service.client.PacienteClientService;
+import com.registro.vacinacao.repository.RegistroVacinacaoRepository;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
@@ -24,15 +23,15 @@ import java.util.stream.Collectors;
 
 @Service
 public class RegistroVacinacaoService {
-    private final PacienteService pacienteService;
-    private final VacinaService vacinaService;
+    private final PacienteClientService pacienteClientService;
+    private final VacinaClientService vacinaClientService;
     @Autowired
     RegistroVacinacaoRepository registroVacinacaoRepository;
 
     @Autowired
-    public RegistroVacinacaoService(PacienteService pacienteService, VacinaService vacinaService, CacheManager cacheManager, RegistroVacinacaoRepository registroVacinacaoRepository) {
-        this.pacienteService = pacienteService;
-        this.vacinaService = vacinaService;
+    public RegistroVacinacaoService(PacienteClientService pacienteClientService, VacinaClientService vacinaClientService, CacheManager cacheManager, RegistroVacinacaoRepository registroVacinacaoRepository) {
+        this.pacienteClientService = pacienteClientService;
+        this.vacinaClientService = vacinaClientService;
         this.cacheManager = cacheManager;
         this.registroVacinacaoRepository = registroVacinacaoRepository;
     }
@@ -100,14 +99,14 @@ public class RegistroVacinacaoService {
     }
 
     public boolean validarRegistroVacinacao(String vacinaId, String pacienteId, String tipo) {
-            JsonNode dadosVacina = vacinaService.buscarVacina(vacinaId);
-            JsonNode dadosPaciente = pacienteService.buscarPaciente(pacienteId);
+            JsonNode dadosVacina = vacinaClientService.buscarVacina(vacinaId);
+            JsonNode dadosPaciente = pacienteClientService.buscarPaciente(pacienteId);
             if (dadosVacina == null || dadosPaciente == null) {
                 return false;
             }
             String fabricante = dadosVacina.get("fabricante").toString();
 
-            JsonNode todasAsVacinas = vacinaService.listarTodasVacinas();
+            JsonNode todasAsVacinas = vacinaClientService.listarTodasVacinas();
 
             List<RegistroVacinacao> dadosRegistroVacinacao = listarRegistroVacinacao();
 
@@ -195,7 +194,7 @@ public class RegistroVacinacaoService {
 
     }
 
-    @CachePut(value = "registroVacinacaoCache", key = "#id")
+    //@CachePut(value = "registroVacinacaoCache", key = "#id")
     public Map<String, Object> atualizarRegistroVacinacao(String id, RegistroVacinacao registroVacinacao) {
         Map<String, Object> resultado = new HashMap<>();
 
