@@ -1,4 +1,4 @@
-package dto;
+package com.registro.vacinacao.dto;
 
 import com.fasterxml.jackson.databind.JsonNode;
 

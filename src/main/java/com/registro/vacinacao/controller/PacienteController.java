@@ -2,8 +2,8 @@ package com.registro.vacinacao.controller;
 
 import com.registro.vacinacao.service.PacienteService;
 import com.registro.vacinacao.exception.TratamentoParaErrosCliente;
-import dto.PacienteDosesAtrasadasDTO;
-import dto.PacienteDosesDTO;
+import com.registro.vacinacao.dto.PacienteDosesAtrasadasDTO;
+import com.registro.vacinacao.dto.PacienteDosesDTO;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,4 +1,4 @@
-package dto;
+package com.registro.vacinacao.dto;
 
 public class InfoPacienteDTO {
     public String nome;
