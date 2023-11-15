@@ -1,18 +1,22 @@
 package com.registro.vacinacao.controller;
 
-import com.registro.vacinacao.service.PacienteService;
-import com.registro.vacinacao.exception.TratamentoParaErrosCliente;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.registro.vacinacao.dto.PacienteDosesAtrasadasDTO;
 import com.registro.vacinacao.dto.PacienteDosesDTO;
+import com.registro.vacinacao.exception.TratamentoErros;
+import com.registro.vacinacao.service.PacienteService;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 
 import javax.servlet.http.HttpServletResponse;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,7 +29,7 @@ public class PacienteController {
     @Autowired
     private PacienteService pacienteService;
     @Autowired
-    private final TratamentoParaErrosCliente tratamentoDeErros;
+    private TratamentoErros tratamentoDeErros;
 
     @GetMapping("/{pacienteId}/doses")
     public ResponseEntity<?> listarDosesPaciente(@PathVariable String pacienteId) {
@@ -43,14 +47,19 @@ public class PacienteController {
             pacienteService.registrarLog("GET", "Listar doses de Pacientes", dosesInfo.toString(), statusCode);
 
             return ResponseEntity.ok(dosesInfo);
-        } catch (Exception e) {
-            Map<String, String> resposta = new HashMap<>();
-            resposta.put("mensagem", e.getMessage());
+        } catch (HttpClientErrorException e) {
+            int statusCode = e.getRawStatusCode();
+            System.out.println("Código de Status HTTP: " + statusCode);
+            pacienteService.registrarLog("GET", "Listar doses de Pacientes", pacienteId, statusCode);
+            String errorMessage = extrairMensagemDeErro(e.getResponseBodyAsString());
 
-            int statusCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-            pacienteService.registrarLog("GET", "Listar doses de Pacientes", e.getMessage(), statusCode);
+            return tratamentoDeErros.criarRespostaDeErro(e.getStatusCode(), errorMessage);
+        } catch (HttpServerErrorException e) {
+            int statusCode = e.getRawStatusCode();
+            System.out.println("Código de Status HTTP: " + statusCode);
+            pacienteService.registrarLog("GET", "Listar doses de Pacientes", pacienteId, statusCode);
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resposta);
+            return tratamentoDeErros.lidarComErroDoServidor(e);
         }
     }
 
@@ -60,11 +69,10 @@ public class PacienteController {
             @RequestParam Map<String, String> requestParams) {
         try {
             if (requestParams.size() > 1 || (requestParams.size() == 1 && !requestParams.containsKey("estado"))) {
-
                 int statusCode = HttpServletResponse.SC_BAD_REQUEST;
                 pacienteService.registrarLog("GET", "Listar Pacientes com Doses Atrasadas", requestParams.toString(), statusCode);
-
-                return ResponseEntity.badRequest().body("Erro: Parâmetros não permitidos na solicitação.");
+                String mensagem = "Parâmetros não permitidos na solicitação.";
+                return tratamentoDeErros.criarRespostaDeErro(HttpStatus.valueOf(statusCode), mensagem);
             }
             @NotNull List<PacienteDosesAtrasadasDTO> resposta = pacienteService.listarPacientesComDosesAtrasadas(estado);
 
@@ -72,14 +80,32 @@ public class PacienteController {
             pacienteService.registrarLog("GET", "Listar Pacientes com Doses Atrasadas", resposta.toString(), statusCode);
 
             return ResponseEntity.ok(resposta);
-        } catch (Exception e) {
-            Map<String, String> resposta = new HashMap<>();
-            resposta.put("mensagem", e.getMessage());
+        } catch (HttpClientErrorException e) {
+            int statusCode = e.getRawStatusCode();
+            System.out.println("Código de Status HTTP: " + statusCode);
+            pacienteService.registrarLog("GET", "listar Pacientes Com Doses Atrasadas", requestParams.toString(), statusCode);
+            String errorMessage = extrairMensagemDeErro(e.getResponseBodyAsString());
 
-            int statusCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-            pacienteService.registrarLog("GET", "Listar Pacientes com Doses Atrasadas", e.getMessage(), statusCode);
+            return tratamentoDeErros.criarRespostaDeErro(e.getStatusCode(), errorMessage);
+        } catch (HttpServerErrorException e) {
+            int statusCode = e.getRawStatusCode();
+            System.out.println("Código de Status HTTP: " + statusCode);
+            pacienteService.registrarLog("GET", "Listar doses de Pacientes", requestParams.toString(), statusCode);
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resposta);
+            return tratamentoDeErros.lidarComErroDoServidor(e);
+        }
+    }
+
+    private String extrairMensagemDeErro(String responseBody) {
+        System.out.println("Corpo da resposta do servidor: " + responseBody);
+
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(responseBody);
+
+            return jsonNode.path("mensagem").asText();
+        } catch (JsonProcessingException e) {
+            return responseBody;
         }
     }
 }
