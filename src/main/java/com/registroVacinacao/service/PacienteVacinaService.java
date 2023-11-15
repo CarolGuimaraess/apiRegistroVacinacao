@@ -54,7 +54,7 @@ public class PacienteVacinaService {
 
     private final CacheManager cacheManager;
 
-    @Cacheable("registroVacinacaoCache")
+    @Cacheable(value = "registroVacinacaoCache", key = "#pacienteId")
     public List<Map<String, Object>> listarDosesDoPaciente(String pacienteId) {
         try {
             List<RegistroVacinacao> registrosDoPaciente = registroVacinacaoService.listarRegistroVacinacao().stream()

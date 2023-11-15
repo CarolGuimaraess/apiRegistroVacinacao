@@ -11,6 +11,14 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+<<<<<<< Updated upstream
+=======
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+>>>>>>> Stashed changes
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -84,6 +92,7 @@ public class RegistroVacinacaoService {
         return registroVacinacaoOptional.get();
     }
 
+    @CacheEvict(value = "registroVacinacaoCache", key = "#id")
     @CachePut(value = "registroVacinacaoCache")
     public Map<String, Object> criarRegistroVacinacao(@NotNull RegistroVacinacao registroVacinacao) {
         Map<String, Object> resultado = new HashMap<>();
