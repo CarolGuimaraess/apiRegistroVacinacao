@@ -24,7 +24,6 @@ public class PacienteClientService {
         return restTemplate.getForObject(urlBasePaciente, JsonNode.class);
     }
 
-
     public JsonNode buscarPaciente(String id) {
         return restTemplate.getForObject(urlBasePaciente + id, JsonNode.class);
     }

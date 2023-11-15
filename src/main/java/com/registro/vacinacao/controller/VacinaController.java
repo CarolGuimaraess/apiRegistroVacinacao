@@ -1,6 +1,9 @@
 package com.registro.vacinacao.controller;
 
-import com.registro.vacinacao.exception.TratamentoParaErrosCliente;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.registro.vacinacao.exception.TratamentoErros;
 import com.registro.vacinacao.service.VacinaService;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +13,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.Collections;
@@ -25,7 +30,7 @@ public class VacinaController {
     @Autowired
     private VacinaService vacinaService;
     @Autowired
-    private final TratamentoParaErrosCliente tratamentoDeErros;
+    private TratamentoErros tratamentoDeErros;
 
     @GetMapping("/aplicadas/total")
     public ResponseEntity<?> listarTotalVacinasAplicadas(
@@ -38,7 +43,8 @@ public class VacinaController {
                 int statusCode = HttpServletResponse.SC_BAD_REQUEST;
                 vacinaService.registrarLog("GET", "Listar Total de Vacinas Aplicadas", requestParams.toString(), statusCode);
 
-                return ResponseEntity.badRequest().body("Erro: Parâmetros não permitidos na solicitação.");
+                String mensagem = "Parâmetros não permitidos na solicitação.";
+                return tratamentoDeErros.criarRespostaDeErro(HttpStatus.valueOf(statusCode), mensagem);
             }
             List<Map<String, Object>> resposta = Collections.singletonList(vacinaService.listarTotalVacinasAplicadas(estado));
 
@@ -46,20 +52,36 @@ public class VacinaController {
             vacinaService.registrarLog("GET", "Listar Total de Vacinas Aplicadas", resposta.toString(), statusCode);
 
             return ResponseEntity.ok(resposta);
-        } catch (Exception e) {
+        } catch (HttpClientErrorException e) {
+            int statusCode = e.getRawStatusCode();
+            System.out.println("Código de Status HTTP: " + statusCode);
+            vacinaService.registrarLog("GET", "Listar Total de Vacinas Aplicadas", requestParams.toString(), statusCode);
+            String errorMessage = extrairMensagemDeErro(e.getResponseBodyAsString());
 
-            int statusCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-            vacinaService.registrarLog("GET", "Listar Total de Vacinas Aplicadas", e.getMessage(), statusCode);
+            return tratamentoDeErros.criarRespostaDeErro(e.getStatusCode(), errorMessage);
+        } catch (HttpServerErrorException e) {
+            int statusCode = e.getRawStatusCode();
+            System.out.println("Código de Status HTTP: " + statusCode);
+            vacinaService.registrarLog("GET", "Listar Total de Vacinas Aplicadas", requestParams.toString(), statusCode);
 
-            return ResponseEntity.internalServerError().body("Erro ao listar o total de vacinas aplicadas: " + e.getMessage());
+            return tratamentoDeErros.lidarComErroDoServidor(e);
         }
     }
 
     @GetMapping("/aplicadas")
     public ResponseEntity<?> listarVacinasAplicadasFabricante(
             @RequestParam(name = "fabricante") String fabricante,
-            @RequestParam(name = "estado", required = false) String estado) {
+            @RequestParam(name = "estado", required = false) String estado,
+            @RequestParam Map<String, String> requestParams) {
         try {
+            if (!requestParams.containsKey("fabricante") || requestParams.size() > 2 || (requestParams.size() == 2 && !requestParams.containsKey("estado"))) {
+
+                int statusCode = HttpServletResponse.SC_BAD_REQUEST;
+                vacinaService.registrarLog("GET", "Listar Total de Aplicadas", requestParams.toString(), statusCode);
+
+                String mensagem = "Parâmetros não permitidos na solicitação.";
+                return tratamentoDeErros.criarRespostaDeErro(HttpStatus.valueOf(statusCode), mensagem);
+            }
             Map<String, Object> resposta = vacinaService.listarVacinasAplicadasFabricante(fabricante, estado);
 
             int statusCode = HttpServletResponse.SC_OK;
@@ -74,6 +96,19 @@ public class VacinaController {
             vacinaService.registrarLog("GET", "Listar Vacinas Aplicadas", e.getMessage(), statusCode);
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resposta);
+        }
+    }
+
+    private String extrairMensagemDeErro(String responseBody) {
+        System.out.println("Corpo da resposta do servidor: " + responseBody);
+
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(responseBody);
+
+            return jsonNode.path("mensagem").asText();
+        } catch (JsonProcessingException e) {
+            return responseBody;
         }
     }
 }

@@ -51,22 +51,16 @@ public class VacinaService {
 
         mongoTemplate.insert(log, "log");
     }
-
-
     @Cacheable("registroVacinacaoCache")
     public Map<String, Object> listarTotalVacinasAplicadas(String estado) {
-        try {
-            List<Map<String, Object>> registrosComPacientes = combinarRegistroComPaciente();
+        List<Map<String, Object>> registrosComPacientes = combinarRegistroComPaciente();
 
-            int totalVacinasAplicadas = calcularTotalVacinasAplicadas(registrosComPacientes, estado);
+        int totalVacinasAplicadas = calcularTotalVacinasAplicadas(registrosComPacientes, estado);
 
-            Map<String, Object> resposta = new HashMap<>();
-            resposta.put("totalVacinasAplicadas", totalVacinasAplicadas);
+        Map<String, Object> resposta = new HashMap<>();
+        resposta.put("totalVacinasAplicadas", totalVacinasAplicadas);
 
-            return resposta;
-        } catch (Exception e) {
-            throw new RuntimeException("Erro ao listar o total de vacinas aplicadas: " + e.getMessage());
-        }
+        return resposta;
     }
 
     private int calcularTotalVacinasAplicadas(@NotNull List<Map<String, Object>> registrosComPacientes, String estado) {
@@ -85,6 +79,7 @@ public class VacinaService {
 
         return totalVacinasAplicadas;
     }
+
     public Map<String, Object> listarVacinasAplicadasFabricante(String fabricante, String estado) {
         JsonNode dadosVacinas = vacinaClientService.listarTodasVacinas();
         List<Map<String, Object>> registrosComPacientes = combinarRegistroComPaciente();
