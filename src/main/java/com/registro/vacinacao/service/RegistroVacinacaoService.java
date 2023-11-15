@@ -132,8 +132,8 @@ public class RegistroVacinacaoService {
             }
 
             if (dataAtual.isBefore(dataMinimaProximaDose)) {
-                String mensagem = "O paciente '" + nomePaciente + "' recebeu uma dose de '" + fabricanteVacina + "' no dia '" +
-                        ultimaDataVacinacao + "'. A próxima dose deverá ser aplicada a partir do dia '" +
+                String mensagem = "O paciente " + nomePaciente + " recebeu uma dose de " + fabricanteVacina + " no dia " +
+                        ultimaDataVacinacao + ". A próxima dose deverá ser aplicada a partir do dia '" +
                         dataMinimaProximaDose +"!";
                 return mensagem;
             }
