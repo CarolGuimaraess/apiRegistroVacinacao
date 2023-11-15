@@ -40,7 +40,7 @@ public class TratamentoErros {
 
     @NotNull
     public ResponseEntity<ErrorDTO> criarRespostaDeErro(@NotNull HttpStatus status, String mensagem) {
-        ErrorDTO erro = new ErrorDTO(status.value(), mensagem);
+        ErrorDTO erro = new ErrorDTO(mensagem);
         return ResponseEntity.status(status).body(erro);
     }
 

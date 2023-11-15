@@ -49,14 +49,12 @@ public class PacienteController {
             return ResponseEntity.ok(dosesInfo);
         } catch (HttpClientErrorException e) {
             int statusCode = e.getRawStatusCode();
-            System.out.println("Código de Status HTTP: " + statusCode);
             pacienteService.registrarLog("GET", "Listar doses de Pacientes", pacienteId, statusCode);
             String errorMessage = extrairMensagemDeErro(e.getResponseBodyAsString());
 
             return tratamentoDeErros.criarRespostaDeErro(e.getStatusCode(), errorMessage);
         } catch (HttpServerErrorException e) {
             int statusCode = e.getRawStatusCode();
-            System.out.println("Código de Status HTTP: " + statusCode);
             pacienteService.registrarLog("GET", "Listar doses de Pacientes", pacienteId, statusCode);
 
             return tratamentoDeErros.lidarComErroDoServidor(e);
@@ -82,14 +80,12 @@ public class PacienteController {
             return ResponseEntity.ok(resposta);
         } catch (HttpClientErrorException e) {
             int statusCode = e.getRawStatusCode();
-            System.out.println("Código de Status HTTP: " + statusCode);
             pacienteService.registrarLog("GET", "listar Pacientes Com Doses Atrasadas", requestParams.toString(), statusCode);
             String errorMessage = extrairMensagemDeErro(e.getResponseBodyAsString());
 
             return tratamentoDeErros.criarRespostaDeErro(e.getStatusCode(), errorMessage);
         } catch (HttpServerErrorException e) {
             int statusCode = e.getRawStatusCode();
-            System.out.println("Código de Status HTTP: " + statusCode);
             pacienteService.registrarLog("GET", "Listar doses de Pacientes", requestParams.toString(), statusCode);
 
             return tratamentoDeErros.lidarComErroDoServidor(e);
@@ -97,7 +93,6 @@ public class PacienteController {
     }
 
     private String extrairMensagemDeErro(String responseBody) {
-        System.out.println("Corpo da resposta do servidor: " + responseBody);
 
         try {
             ObjectMapper objectMapper = new ObjectMapper();

@@ -63,7 +63,7 @@ public class RegistroVacinacaoService {
     }
 
     @Cacheable("registroVacinacaoCache")
-    public RegistroVacinacao buscarRegistroVacinacao(String id) throws Exception {
+    public RegistroVacinacao buscarRegistroVacinacao(String id) {
 
         Cache cache = cacheManager.getCache("registroVacinacaoCache");
 
@@ -77,40 +77,34 @@ public class RegistroVacinacaoService {
 
         Optional<RegistroVacinacao> registroVacinacaoOptional = registroVacinacaoRepository.findById(id);
 
-        if (!registroVacinacaoOptional.isPresent()) {
-            throw new Exception("Registro de Vacinação não encontrado!");
-        }
+        return registroVacinacaoOptional.orElse(null);
 
-        return registroVacinacaoOptional.get();
     }
 
-    @CacheEvict(value = "registroVacinacaoCache", key = "#id")
+    @CacheEvict(value = "registroVacinacaoCache")
     public Map<String, Object> criarRegistroVacinacao(@NotNull RegistroVacinacao registroVacinacao) {
         Map<String, Object> resultado = new HashMap<>();
+        String mensagemValidacao = validarRegistroVacinacao(registroVacinacao.getIdentificacaoVacina(), registroVacinacao.getIdentificacaoPaciente(), "criar");
 
-        if (validarRegistroVacinacao(registroVacinacao.getIdentificacaoVacina(), registroVacinacao.getIdentificacaoPaciente(), "criar")) {
-            resultado.put("status", HttpStatus.OK.value());
-            resultado.put("mensagem", "Registro de vacinação criado com sucesso!");
-            registroVacinacaoRepository.insert(registroVacinacao);
-        } else {
+        if (!mensagemValidacao.equals("sucesso")) {
             resultado.put("status", HttpStatus.UNPROCESSABLE_ENTITY.value());
-            resultado.put("mensagem", "Não foi possível criar o registro de vacinação. O paciente já recebeu todas as vacinas necessárias do tratamento!");
+            resultado.put("mensagem", mensagemValidacao);
+        } else {
+            resultado.put("status", HttpStatus.OK.value());
+            resultado.put("mensagem", mensagemValidacao);
+            registroVacinacaoRepository.insert(registroVacinacao);
+
         }
         return resultado;
     }
 
-    public boolean validarRegistroVacinacao(String vacinaId, String pacienteId, String tipo) {
+    public String validarRegistroVacinacao(String vacinaId, String pacienteId, String tipo) {
         JsonNode dadosVacina = vacinaClientService.buscarVacina(vacinaId);
         JsonNode dadosPaciente = pacienteClientService.buscarPaciente(pacienteId);
-        if (dadosVacina == null || dadosPaciente == null) {
-            return false;
-        }
+
         String fabricante = dadosVacina.get("fabricante").toString();
-
         JsonNode todasAsVacinas = vacinaClientService.listarTodasVacinas();
-
         List<RegistroVacinacao> dadosRegistroVacinacao = listarRegistroVacinacao();
-
         List<JsonNode> vacinasDoFabricante = new ArrayList<>();
 
         // Iterar sobre todas as vacinas e filtrar aquelas do fabricante específico
@@ -122,50 +116,39 @@ public class RegistroVacinacaoService {
 
         // Encontrar registros de vacinação do paciente
         List<RegistroVacinacao> pacienteVacinacao = encontrarRegistroVacinacaoPaciente(dadosRegistroVacinacao, pacienteId, vacinasDoFabricante);
-        if (Objects.equals(tipo, "criar")) {
-            // Verificar se o paciente recebeu doses anteriores
-            if (pacienteVacinacao.size() > 0) {
-                LocalDate ultimaDataVacinacao = pacienteVacinacao.get(pacienteVacinacao.size() - 1).getDataVacinacao();
 
-                int intervaloDeDoses = dadosVacina.get("intervaloDeDoses").asInt();
-                LocalDate dataMinimaProximaDose = ultimaDataVacinacao.plusDays(intervaloDeDoses);
-                LocalDate dataAtual = LocalDate.now();
+        if ((Objects.equals(tipo, "criar") && pacienteVacinacao.size() > 0) ||
+                (Objects.equals(tipo, "atualizar") && pacienteVacinacao.size() > 1)) {
 
-                // Verificar se a data atual está antes da data mínima para a próxima dose
-                if (dataAtual.isBefore(dataMinimaProximaDose)) {
-                    return false;
-                }
+            LocalDate ultimaDataVacinacao = pacienteVacinacao.get(pacienteVacinacao.size() - 1).getDataVacinacao();
+            int intervaloDeDoses = dadosVacina.get("intervaloDeDoses").asInt();
+            LocalDate dataMinimaProximaDose = ultimaDataVacinacao.plusDays(intervaloDeDoses);
+            LocalDate dataAtual = LocalDate.now();
+            String nomePaciente = dadosPaciente.get("nome").asText();
+            String fabricanteVacina = dadosVacina.get("fabricante").asText();
 
-                // Verificar se o paciente atingiu o número máximo de doses
-                if (pacienteVacinacao.size() >= dadosVacina.get("numeroDeDoses").asInt()) {
-                    return false;
-                }
+            if (!verificarDosesDeFabricantesDiferentes(pacienteVacinacao, vacinasDoFabricante)) {
+                return "A primeira dose aplicada no paciente '" + nomePaciente + "' foi: '" + fabricanteVacina + "'. Todas as doses devem ser aplicadas com o mesmo medicamento!";
             }
-        } else if (Objects.equals(tipo, "atualizar")) {
-            // Verificar se o paciente possui mais de uma dose para atualização
-            if (pacienteVacinacao.size() > 1) {
-                LocalDate ultimaDataVacinacao = pacienteVacinacao.get(pacienteVacinacao.size() - 1).getDataVacinacao();
 
-                int intervaloDeDoses = dadosVacina.get("intervaloDeDoses").asInt();
-                LocalDate dataMinimaProximaDose = ultimaDataVacinacao.plusDays(intervaloDeDoses);
-                LocalDate dataAtual = LocalDate.now();
+            if (dataAtual.isBefore(dataMinimaProximaDose)) {
+                String mensagem = "O paciente '" + nomePaciente + "' recebeu uma dose de '" + fabricanteVacina + "' no dia '" +
+                        ultimaDataVacinacao + "'. A próxima dose deverá ser aplicada a partir do dia '" +
+                        dataMinimaProximaDose +"!";
+                return mensagem;
+            }
 
-                // Verificar se a data atual está antes da data mínima para a próxima dose
-                if (dataAtual.isBefore(dataMinimaProximaDose)) {
-                    return false;
-                }
-
-                // Verificar se o paciente atingiu o número máximo de doses
-                if (pacienteVacinacao.size() >= dadosVacina.get("numeroDeDoses").asInt()) {
-                    return false;
-                }
+            if (pacienteVacinacao.size() >= dadosVacina.get("numeroDeDoses").asInt()) {
+                return "Não foi possível registrar sua solicitação pois o paciente "+
+                        nomePaciente +  " já recebeu todas as vacinas necessárias de seu tratamento!";
             }
         }
-        // Se todas as verificações passarem, retornar verdadeiro
-        return true;
+
+        return "sucesso";
     }
 
-    private List<RegistroVacinacao> encontrarRegistroVacinacaoPaciente(List<RegistroVacinacao> registros, String pacienteId, List<JsonNode> vacinasDoFabricante) {
+
+    private @NotNull List<RegistroVacinacao> encontrarRegistroVacinacaoPaciente(@NotNull List<RegistroVacinacao> registros, String pacienteId, List<JsonNode> vacinasDoFabricante) {
         List<RegistroVacinacao> pacienteVacinacao = new ArrayList<>();
 
         for (RegistroVacinacao registro : registros) {
@@ -176,6 +159,12 @@ public class RegistroVacinacaoService {
         }
 
         return pacienteVacinacao;
+    }
+
+    private boolean verificarDosesDeFabricantesDiferentes(List<RegistroVacinacao> pacienteVacinacao, List<JsonNode> vacinasDoFabricante) {
+        return pacienteVacinacao.stream()
+                .map(RegistroVacinacao::getIdentificacaoVacina)
+                .noneMatch(idVacina -> vacinasDoFabricante.stream().noneMatch(vacina -> vacina.get("id").asText().equals(idVacina)));
     }
 
     private boolean obterUltimoRegistroVacinacaoDoPaciente(String pacienteId, String registroVacinacaoId) {
@@ -198,11 +187,12 @@ public class RegistroVacinacaoService {
     @CachePut(value = "registroVacinacaoCache", key = "#id")
     public Map<String, Object> atualizarRegistroVacinacao(String id, RegistroVacinacao registroVacinacao) {
         Map<String, Object> resultado = new HashMap<>();
+        String mensagemValidacao = validarRegistroVacinacao(registroVacinacao.getIdentificacaoVacina(), registroVacinacao.getIdentificacaoPaciente(), "atualizar");
 
         try {
             RegistroVacinacao registroVacinacaoAntigo = buscarRegistroVacinacao(id);
 
-            if (validarRegistroVacinacao(registroVacinacao.getIdentificacaoVacina(), registroVacinacao.getIdentificacaoPaciente(), "atualizar")) {
+            if (mensagemValidacao.equals("sucesso")) {
                 if (obterUltimoRegistroVacinacaoDoPaciente(registroVacinacaoAntigo.getIdentificacaoPaciente(), id)) {
                     if (registroVacinacaoAntigo.getIdentificacaoVacina().equals(registroVacinacao.getIdentificacaoVacina())) {
 

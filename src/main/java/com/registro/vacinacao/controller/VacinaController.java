@@ -18,7 +18,6 @@ import org.springframework.web.client.HttpServerErrorException;
 
 import javax.servlet.http.HttpServletResponse;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -54,14 +53,12 @@ public class VacinaController {
             return ResponseEntity.ok(resposta);
         } catch (HttpClientErrorException e) {
             int statusCode = e.getRawStatusCode();
-            System.out.println("Código de Status HTTP: " + statusCode);
             vacinaService.registrarLog("GET", "Listar Total de Vacinas Aplicadas", requestParams.toString(), statusCode);
             String errorMessage = extrairMensagemDeErro(e.getResponseBodyAsString());
 
             return tratamentoDeErros.criarRespostaDeErro(e.getStatusCode(), errorMessage);
         } catch (HttpServerErrorException e) {
             int statusCode = e.getRawStatusCode();
-            System.out.println("Código de Status HTTP: " + statusCode);
             vacinaService.registrarLog("GET", "Listar Total de Vacinas Aplicadas", requestParams.toString(), statusCode);
 
             return tratamentoDeErros.lidarComErroDoServidor(e);
@@ -88,20 +85,21 @@ public class VacinaController {
             vacinaService.registrarLog("GET", "Listar Vacinas Aplicadas", resposta.toString(), statusCode);
 
             return ResponseEntity.ok(resposta);
-        } catch (Exception e) {
-            Map<String, String> resposta = new HashMap<>();
-            resposta.put("mensagem", e.getMessage());
+        } catch (HttpClientErrorException e) {
+            int statusCode = e.getRawStatusCode();
+            vacinaService.registrarLog("GET", "Listar Vacinas Aplicadas", requestParams.toString(), statusCode);
+            String errorMessage = extrairMensagemDeErro(e.getResponseBodyAsString());
 
-            int statusCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-            vacinaService.registrarLog("GET", "Listar Vacinas Aplicadas", e.getMessage(), statusCode);
+            return tratamentoDeErros.criarRespostaDeErro(e.getStatusCode(), errorMessage);
+        } catch (HttpServerErrorException e) {
+            int statusCode = e.getRawStatusCode();
+            vacinaService.registrarLog("GET", "Listar Vacinas Aplicadas", requestParams.toString(), statusCode);
 
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(resposta);
+            return tratamentoDeErros.lidarComErroDoServidor(e);
         }
     }
 
     private String extrairMensagemDeErro(String responseBody) {
-        System.out.println("Corpo da resposta do servidor: " + responseBody);
-
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode jsonNode = objectMapper.readTree(responseBody);
