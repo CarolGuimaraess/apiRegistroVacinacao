@@ -5,7 +5,10 @@ import com.registro.vacinacao.entity.Log;
 import com.registro.vacinacao.entity.RegistroVacinacao;
 import com.registro.vacinacao.service.client.PacienteClientService;
 import com.registro.vacinacao.service.client.VacinaClientService;
-import dto.*;
+import dto.InfoPacienteDTO;
+import dto.InfoVacinaDTO;
+import dto.PacienteDosesAtrasadasDTO;
+import dto.PacienteDosesDTO;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
@@ -55,7 +58,7 @@ public class PacienteService {
 
     private final CacheManager cacheManager;
 
-    @Cacheable("registroVacinacaoCache")
+    @Cacheable(value = "registroVacinacaoCache", key = "#pacienteId")
     public List<PacienteDosesDTO> listarDosesDoPaciente(String pacienteId) {
         try {
             List<RegistroVacinacao> registrosDoPaciente = registroVacinacaoService.listarRegistroVacinacao().stream()
