@@ -1,6 +1,7 @@
 package com.registro.vacinacao.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.registro.vacinacao.dto.ErrorDTO;
 import com.registro.vacinacao.entity.Log;
 import com.registro.vacinacao.entity.RegistroVacinacao;
 import com.registro.vacinacao.repository.RegistroVacinacaoRepository;
@@ -77,23 +78,29 @@ public class RegistroVacinacaoService {
 
         Optional<RegistroVacinacao> registroVacinacaoOptional = registroVacinacaoRepository.findById(id);
 
-        return registroVacinacaoOptional.orElse(null);
-
+        if (registroVacinacaoOptional.isPresent()) {
+            return registroVacinacaoOptional.get();
+        } else {
+            return null; // Retorna null quando o ID não existe
+        }
     }
+
 
     @CacheEvict(value = "registroVacinacaoCache")
     public Map<String, Object> criarRegistroVacinacao(@NotNull RegistroVacinacao registroVacinacao) {
         Map<String, Object> resultado = new HashMap<>();
         String mensagemValidacao = validarRegistroVacinacao(registroVacinacao.getIdentificacaoVacina(), registroVacinacao.getIdentificacaoPaciente(), "criar");
 
-        if (!mensagemValidacao.equals("sucesso")) {
+        if (!mensagemValidacao.equals("sucesso") && !mensagemValidacao.equals("falha")) {
             resultado.put("status", HttpStatus.UNPROCESSABLE_ENTITY.value());
             resultado.put("mensagem", mensagemValidacao);
-        } else {
-            resultado.put("status", HttpStatus.OK.value());
+        } else if (mensagemValidacao.equals("sucesso")) {
+            resultado.put("status", HttpStatus.CREATED.value());
             resultado.put("mensagem", mensagemValidacao);
             registroVacinacaoRepository.insert(registroVacinacao);
-
+        } else {
+            resultado.put("status", HttpStatus.NOT_FOUND.value());
+            resultado.put("mensagem", mensagemValidacao);
         }
         return resultado;
     }
@@ -101,7 +108,9 @@ public class RegistroVacinacaoService {
     public String validarRegistroVacinacao(String vacinaId, String pacienteId, String tipo) {
         JsonNode dadosVacina = vacinaClientService.buscarVacina(vacinaId);
         JsonNode dadosPaciente = pacienteClientService.buscarPaciente(pacienteId);
-
+        if (dadosVacina == null || dadosVacina.isEmpty() || dadosPaciente == null || dadosPaciente.isEmpty()) {
+            return "falha";
+        }
         String fabricante = dadosVacina.get("fabricante").toString();
         JsonNode todasAsVacinas = vacinaClientService.listarTodasVacinas();
         List<RegistroVacinacao> dadosRegistroVacinacao = listarRegistroVacinacao();
@@ -188,38 +197,38 @@ public class RegistroVacinacaoService {
     public Map<String, Object> atualizarRegistroVacinacao(String id, RegistroVacinacao registroVacinacao) {
         Map<String, Object> resultado = new HashMap<>();
         String mensagemValidacao = validarRegistroVacinacao(registroVacinacao.getIdentificacaoVacina(), registroVacinacao.getIdentificacaoPaciente(), "atualizar");
+        RegistroVacinacao registroVacinacaoAntigo = buscarRegistroVacinacao(id);
+        if (registroVacinacaoAntigo == null || registroVacinacaoAntigo.getId() == null) {
+            resultado.put("status", HttpStatus.NOT_FOUND.value());
+            resultado.put("mensagem", "Não foi possível encontrar registro vacinação.");
+            return resultado;
+        }
+        Boolean ultimoRegistroVacinacao = obterUltimoRegistroVacinacaoDoPaciente(registroVacinacaoAntigo.getIdentificacaoPaciente(), id);
 
-        try {
-            RegistroVacinacao registroVacinacaoAntigo = buscarRegistroVacinacao(id);
+        if (mensagemValidacao.equals("sucesso")) {
+            if (ultimoRegistroVacinacao) {
+                registroVacinacaoAntigo.setNomeProfissional(registroVacinacao.getNomeProfissional());
+                registroVacinacaoAntigo.setSobrenomeProfissional(registroVacinacao.getSobrenomeProfissional());
+                registroVacinacaoAntigo.setDataVacinacao(registroVacinacao.getDataVacinacao());
+                registroVacinacaoAntigo.setCpfProfissional(registroVacinacao.getCpfProfissional());
+                registroVacinacaoAntigo.setIdentificacaoPaciente(registroVacinacao.getIdentificacaoPaciente());
+                registroVacinacaoAntigo.setIdentificacaoVacina(registroVacinacao.getIdentificacaoVacina());
+                registroVacinacaoAntigo.setIdentificacaoDose(registroVacinacao.getIdentificacaoDose());
 
-            if (mensagemValidacao.equals("sucesso")) {
-                if (obterUltimoRegistroVacinacaoDoPaciente(registroVacinacaoAntigo.getIdentificacaoPaciente(), id)) {
-                    if (registroVacinacaoAntigo.getIdentificacaoVacina().equals(registroVacinacao.getIdentificacaoVacina())) {
+                registroVacinacaoRepository.save(registroVacinacaoAntigo);
 
-                        registroVacinacaoAntigo.setNomeProfissional(registroVacinacao.getNomeProfissional());
-                        registroVacinacaoAntigo.setSobrenomeProfissional(registroVacinacao.getSobrenomeProfissional());
-                        registroVacinacaoAntigo.setDataVacinacao(registroVacinacao.getDataVacinacao());
-                        registroVacinacaoAntigo.setCpfProfissional(registroVacinacao.getCpfProfissional());
-                        registroVacinacaoAntigo.setIdentificacaoPaciente(registroVacinacao.getIdentificacaoPaciente());
-                        registroVacinacaoAntigo.setIdentificacaoVacina(registroVacinacao.getIdentificacaoVacina());
-                        registroVacinacaoAntigo.setIdentificacaoDose(registroVacinacao.getIdentificacaoDose());
+                resultado.put("status", HttpStatus.OK.value());
+                resultado.put("mensagem", "Atualizado");
+                resultado.put("registroVacinacao", registroVacinacaoAntigo);
 
-                        registroVacinacaoRepository.save(registroVacinacaoAntigo);
-
-                        resultado.put("status", HttpStatus.OK.value());
-                        resultado.put("mensagem", "Atualizado");
-                        resultado.put("registroVacinacao", registroVacinacaoAntigo);
-
-                    }
-                }
             } else {
                 resultado.put("status", HttpStatus.UNPROCESSABLE_ENTITY.value());
-                resultado.put("mensagem", "Apenas o último registro de vacinação de um paciente pode ser editado");
+                resultado.put("mensagem", "Apenas o último registro de vacinação de um paciente pode ser atualizado");
 
             }
-        } catch (Exception e) {
-            resultado.put("status", HttpStatus.NOT_FOUND.value());
-            resultado.put("mensagem", "Erro ao atualizar registro vacinação");
+        } else {
+            resultado.put("status", HttpStatus.UNPROCESSABLE_ENTITY.value());
+            resultado.put("mensagem", mensagemValidacao);
 
         }
         return resultado;
@@ -228,13 +237,17 @@ public class RegistroVacinacaoService {
     public Map<String, Object> excluirRegistroVacinacao(String id) {
         Map<String, Object> resultado = new HashMap<>();
 
-        try {
-            Cache cache = cacheManager.getCache("registroVacinacaoCache");
-            if (cache != null) {
-                cache.evict(id);
-            }
+        Cache cache = cacheManager.getCache("registroVacinacaoCache");
+        if (cache != null) {
+            cache.evict(id);
+        }
 
-            RegistroVacinacao registroVacinacao = buscarRegistroVacinacao(id);
+        RegistroVacinacao registroVacinacao = buscarRegistroVacinacao(id);
+        if (registroVacinacao == null || registroVacinacao.getId() == null) {
+            resultado.put("status", HttpStatus.NOT_FOUND.value());
+            resultado.put("mensagem", "Não foi possível encontrar registro vacinação.");
+            return resultado;
+        } else {
             if (obterUltimoRegistroVacinacaoDoPaciente(registroVacinacao.getIdentificacaoPaciente(), id)) {
                 registroVacinacaoRepository.delete(registroVacinacao);
                 resultado.put("status", HttpStatus.NO_CONTENT.value());
@@ -243,9 +256,6 @@ public class RegistroVacinacaoService {
                 resultado.put("status", HttpStatus.UNPROCESSABLE_ENTITY.value());
                 resultado.put("mensagem", "Apenas o último registro de vacinação de um paciente pode ser excluído");
             }
-        } catch (Exception e) {
-            resultado.put("status", HttpStatus.NOT_FOUND.value());
-            resultado.put("mensagem", "Erro ao excluir o registro de vacinação");
         }
         return resultado;
     }

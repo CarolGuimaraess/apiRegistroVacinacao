@@ -90,7 +90,7 @@ public class RegistroVacinacaoController {
 
             Map<String, Object> resultado = registroVacinacaoService.criarRegistroVacinacao(registroVacinacao);
             int statusCode = (int) resultado.get("status");
-            return HttpStatus.OK.value() == statusCode
+            return HttpStatus.CREATED.value() == statusCode
                     ? ResponseEntity.created(null).body(resultado.get("registroVacinacao"))
                     : ResponseEntity.status(statusCode).body(new ErrorDTO((String) resultado.get("mensagem")));
         } catch (HttpClientErrorException e) {
@@ -124,15 +124,13 @@ public class RegistroVacinacaoController {
         }
 
         try {
-            Map<String, Object> respostaServico = registroVacinacaoService.atualizarRegistroVacinacao(id, registroVacinacao);
+            Map<String, Object> resultado = registroVacinacaoService.atualizarRegistroVacinacao(id, registroVacinacao);
 
-            int statusCode = (int) respostaServico.get("status");
-            registroVacinacaoService.registrarLog("PUT", "Atualizar Registro de Vacinação", respostaServico.get("mensagem").toString(), statusCode);
-
-            return ResponseEntity.status(statusCode).body(
-                    respostaServico.get("status").equals(HttpStatus.OK.value()) ?
-                            respostaServico.get("registroVacinacao") : respostaServico
-            );
+            int statusCode = (int) resultado.get("status");
+            registroVacinacaoService.registrarLog("PUT", "Atualizar Registro de Vacinação", resultado.get("mensagem").toString(), statusCode);
+            return HttpStatus.OK.value() == statusCode
+                    ? ResponseEntity.ok(resultado.get("registroVacinacao"))
+                    : ResponseEntity.status(statusCode).body(new ErrorDTO((String) resultado.get("mensagem")));
 
         } catch (HttpClientErrorException e) {
             int statusCode = e.getRawStatusCode();
@@ -151,17 +149,14 @@ public class RegistroVacinacaoController {
     public ResponseEntity<?> excluirRegistroVacinacao(@PathVariable String id) {
         try {
             Map<String, Object> resultado = registroVacinacaoService.excluirRegistroVacinacao(id);
+            int statusCode = (int) resultado.get("status");
 
-            if (resultado.get("status").equals(HttpStatus.NO_CONTENT.value())) {
-                int statusCode = HttpServletResponse.SC_NO_CONTENT;
-                registroVacinacaoService.registrarLog("DELETE", "Deletar Registro de Vacinação", id, statusCode);
-                return ResponseEntity.noContent().build();
-            } else {
-                int statusCode = HttpServletResponse.SC_BAD_REQUEST; // ou outro código de status apropriado
-                registroVacinacaoService.registrarLog("DELETE", "Deletar Registro de Vacinação", id, statusCode);
+            registroVacinacaoService.registrarLog("DELETE", "Deletar Registro de Vacinação", id, statusCode);
 
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resultado);
-            }
+            return HttpStatus.OK.value() == statusCode
+                    ? ResponseEntity.ok(resultado.get("registroVacinacao"))
+                    : ResponseEntity.status(statusCode).body(new ErrorDTO((String) resultado.get("mensagem")));
+
         } catch (HttpClientErrorException e) {
             int statusCode = e.getRawStatusCode();
             registroVacinacaoService.registrarLog("DELETE", "Deletar Registro de Vacinação", id, statusCode);

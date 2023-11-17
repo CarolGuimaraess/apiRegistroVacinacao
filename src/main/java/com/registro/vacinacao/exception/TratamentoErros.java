@@ -20,7 +20,12 @@ public class TratamentoErros {
         String mensagem = e.getBindingResult().getFieldError().getDefaultMessage();
         return criarRespostaDeErro(HttpStatus.BAD_REQUEST, mensagem);
     }
-
+    @ExceptionHandler(NullPointerException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<ErrorDTO> lidarComErroDeNulos(@NotNull MethodArgumentNotValidException e) {
+        String mensagem = e.getBindingResult().getFieldError().getDefaultMessage();
+        return criarRespostaDeErro(HttpStatus.NOT_FOUND, mensagem);
+    }
     @ExceptionHandler(HttpClientErrorException.class)
     public ResponseEntity<ErrorDTO> lidarComErroDoCliente(@NotNull HttpClientErrorException e) {
         return criarRespostaDeErro(e.getStatusCode(), "Erro do cliente: " + e.getResponseBodyAsString());
