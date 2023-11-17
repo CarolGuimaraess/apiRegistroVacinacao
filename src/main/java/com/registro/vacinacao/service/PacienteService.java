@@ -19,9 +19,10 @@ import org.springframework.stereotype.Service;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.Period;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 @Service
 public class PacienteService {
@@ -111,7 +112,6 @@ public class PacienteService {
                             PacienteDosesAtrasadasDTO pacienteDTO = new PacienteDosesAtrasadasDTO();
                             pacienteDTO.paciente = (InfoPacienteDTO) infoPaciente(pacienteNode);
 
-                            // Ajuste nesta linha: crie a lista de datas diretamente.
                             pacienteDTO.dosesAtrasadas = datasDasDosesAtrasadas.stream()
                                     .map(LocalDate::toString)
                                     .collect(Collectors.toList());
@@ -175,27 +175,4 @@ public class PacienteService {
         return false;
     }
 
-    List<Map<String, Object>> combinarRegistroComPaciente() {
-        JsonNode dadosPacientes = pacienteClientService.listarTodosPacientes();
-        List<RegistroVacinacao> dadosRegistroVacinacao = registroVacinacaoService.listarRegistroVacinacao();
-
-        return dadosRegistroVacinacao.stream()
-                .map(registro -> {
-                    String pacienteId = registro.getIdentificacaoPaciente();
-
-                    Optional<JsonNode> pacienteCorrespondente = StreamSupport.stream(dadosPacientes.spliterator(), false)
-                            .filter(pacienteNode -> pacienteNode.path("id").asText().equals(pacienteId))
-                            .findFirst();
-
-                    return pacienteCorrespondente.map(paciente -> {
-                        Map<String, Object> registroComPaciente = new HashMap<>();
-                        registroComPaciente.put("registroVacinacao", registro);
-                        registroComPaciente.put("paciente", paciente);
-                        return registroComPaciente;
-                    });
-                })
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .collect(Collectors.toList());
-    }
 }

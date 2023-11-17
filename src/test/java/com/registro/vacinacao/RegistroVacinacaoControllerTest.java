@@ -64,24 +64,7 @@ public class RegistroVacinacaoControllerTest {
 
         Mockito.when(registroVacinacaoService.listarRegistroVacinacao()).thenReturn(registrosVacinacao);
 
-        mockMvc.perform(get("/registro-vacinacao"))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(2))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].nomeProfissional").value(registro1.getNomeProfissional()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].sobrenomeProfissional").value(registro1.getSobrenomeProfissional()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].dataVacinacao").value(registro1.getDataVacinacao().toString()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].cpfProfissional").value(registro1.getCpfProfissional()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].identificacaoPaciente").value(registro1.getIdentificacaoPaciente()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].identificacaoVacina").value(registro1.getIdentificacaoVacina()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[0].identificacaoDose").value(registro1.getIdentificacaoDose()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[1].nomeProfissional").value(registro2.getNomeProfissional()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[1].sobrenomeProfissional").value(registro2.getSobrenomeProfissional()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[1].dataVacinacao").value(registro2.getDataVacinacao().toString()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[1].cpfProfissional").value(registro2.getCpfProfissional()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[1].identificacaoPaciente").value(registro2.getIdentificacaoPaciente()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[1].identificacaoVacina").value(registro2.getIdentificacaoVacina()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$[1].identificacaoDose").value(registro2.getIdentificacaoDose()));
+        mockMvc.perform(get("/registro-vacinacao")).andExpect(MockMvcResultMatchers.status().isOk()).andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(2)).andExpect(MockMvcResultMatchers.jsonPath("$[0].nomeProfissional").value(registro1.getNomeProfissional())).andExpect(MockMvcResultMatchers.jsonPath("$[0].sobrenomeProfissional").value(registro1.getSobrenomeProfissional())).andExpect(MockMvcResultMatchers.jsonPath("$[0].dataVacinacao").value(registro1.getDataVacinacao().toString())).andExpect(MockMvcResultMatchers.jsonPath("$[0].cpfProfissional").value(registro1.getCpfProfissional())).andExpect(MockMvcResultMatchers.jsonPath("$[0].identificacaoPaciente").value(registro1.getIdentificacaoPaciente())).andExpect(MockMvcResultMatchers.jsonPath("$[0].identificacaoVacina").value(registro1.getIdentificacaoVacina())).andExpect(MockMvcResultMatchers.jsonPath("$[0].identificacaoDose").value(registro1.getIdentificacaoDose())).andExpect(MockMvcResultMatchers.jsonPath("$[1].nomeProfissional").value(registro2.getNomeProfissional())).andExpect(MockMvcResultMatchers.jsonPath("$[1].sobrenomeProfissional").value(registro2.getSobrenomeProfissional())).andExpect(MockMvcResultMatchers.jsonPath("$[1].dataVacinacao").value(registro2.getDataVacinacao().toString())).andExpect(MockMvcResultMatchers.jsonPath("$[1].cpfProfissional").value(registro2.getCpfProfissional())).andExpect(MockMvcResultMatchers.jsonPath("$[1].identificacaoPaciente").value(registro2.getIdentificacaoPaciente())).andExpect(MockMvcResultMatchers.jsonPath("$[1].identificacaoVacina").value(registro2.getIdentificacaoVacina())).andExpect(MockMvcResultMatchers.jsonPath("$[1].identificacaoDose").value(registro2.getIdentificacaoDose()));
         Mockito.verify(registroVacinacaoService, times(2)).listarRegistroVacinacao();
     }
 
@@ -92,10 +75,7 @@ public class RegistroVacinacaoControllerTest {
 
         when(registroVacinacaoService.listarRegistroVacinacao()).thenReturn(registroVacinacao);
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/registro-vacinacao"))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(0));
+        mockMvc.perform(MockMvcRequestBuilders.get("/registro-vacinacao")).andExpect(MockMvcResultMatchers.status().isOk()).andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andExpect(MockMvcResultMatchers.jsonPath("$.length()").value(0));
 
         verify(registroVacinacaoService, times(2)).listarRegistroVacinacao();
     }
@@ -115,17 +95,7 @@ public class RegistroVacinacaoControllerTest {
 
         when(registroVacinacaoService.buscarRegistroVacinacao(registro.getId())).thenReturn(registro);
 
-        mockMvc.perform(get("/registro-vacinacao/{id}", registro.getId()))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(registro.getId()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.nomeProfissional").value(registro.getNomeProfissional()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.sobrenomeProfissional").value(registro.getSobrenomeProfissional()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.dataVacinacao").value(registro.getDataVacinacao().toString()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.cpfProfissional").value(registro.getCpfProfissional()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.identificacaoPaciente").value(registro.getIdentificacaoPaciente()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.identificacaoVacina").value(registro.getIdentificacaoVacina()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.identificacaoDose").value(registro.getIdentificacaoDose()));
+        mockMvc.perform(get("/registro-vacinacao/{id}", registro.getId())).andExpect(MockMvcResultMatchers.status().isOk()).andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andExpect(MockMvcResultMatchers.jsonPath("$.id").value(registro.getId())).andExpect(MockMvcResultMatchers.jsonPath("$.nomeProfissional").value(registro.getNomeProfissional())).andExpect(MockMvcResultMatchers.jsonPath("$.sobrenomeProfissional").value(registro.getSobrenomeProfissional())).andExpect(MockMvcResultMatchers.jsonPath("$.dataVacinacao").value(registro.getDataVacinacao().toString())).andExpect(MockMvcResultMatchers.jsonPath("$.cpfProfissional").value(registro.getCpfProfissional())).andExpect(MockMvcResultMatchers.jsonPath("$.identificacaoPaciente").value(registro.getIdentificacaoPaciente())).andExpect(MockMvcResultMatchers.jsonPath("$.identificacaoVacina").value(registro.getIdentificacaoVacina())).andExpect(MockMvcResultMatchers.jsonPath("$.identificacaoDose").value(registro.getIdentificacaoDose()));
 
         Mockito.verify(registroVacinacaoService, times(1)).buscarRegistroVacinacao(registro.getId());
     }
@@ -137,12 +107,9 @@ public class RegistroVacinacaoControllerTest {
         String id = "12312321131311";
 
         when(registroVacinacaoService.buscarRegistroVacinacao(id)).thenThrow(ResourceNotFoundException.class);
-        doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Registro de Vacinação não encontrado"))
-                .when(registroVacinacaoService).buscarRegistroVacinacao(eq(id));
+        doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Registro de Vacinação não encontrado")).when(registroVacinacaoService).buscarRegistroVacinacao(eq(id));
 
-        mockMvc.perform(MockMvcRequestBuilders.get("/registro-vacinacao/" + id)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isNotFound());
+        mockMvc.perform(MockMvcRequestBuilders.get("/registro-vacinacao/" + id).contentType(MediaType.APPLICATION_JSON)).andExpect(MockMvcResultMatchers.status().isNotFound());
         verify(registroVacinacaoService, times(1)).buscarRegistroVacinacao(id);
 
     }
@@ -173,19 +140,8 @@ public class RegistroVacinacaoControllerTest {
         objectMapper.configure(SerializationFeature.INDENT_OUTPUT, false);
         String novoRegistroVacinacaoJson = objectMapper.writeValueAsString(registro);
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/registro-vacinacao")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(novoRegistroVacinacaoJson))
-                .andExpect(MockMvcResultMatchers.status().isCreated())
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.id").value(registro.getId()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.nomeProfissional").value(registro.getNomeProfissional()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.sobrenomeProfissional").value(registro.getSobrenomeProfissional()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.dataVacinacao").value(registro.getDataVacinacao().toString()))  // Ajuste aqui
-                .andExpect(MockMvcResultMatchers.jsonPath("$.cpfProfissional").value(registro.getCpfProfissional()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.identificacaoPaciente").value(registro.getIdentificacaoPaciente()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.identificacaoVacina").value(registro.getIdentificacaoVacina()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.identificacaoDose").value(registro.getIdentificacaoDose()));
+        mockMvc.perform(MockMvcRequestBuilders.post("/registro-vacinacao").contentType(MediaType.APPLICATION_JSON).content(novoRegistroVacinacaoJson)).andExpect(MockMvcResultMatchers.status().isCreated()).andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andExpect(MockMvcResultMatchers.jsonPath("$.id").value(registro.getId())).andExpect(MockMvcResultMatchers.jsonPath("$.nomeProfissional").value(registro.getNomeProfissional())).andExpect(MockMvcResultMatchers.jsonPath("$.sobrenomeProfissional").value(registro.getSobrenomeProfissional())).andExpect(MockMvcResultMatchers.jsonPath("$.dataVacinacao").value(registro.getDataVacinacao().toString()))  // Ajuste aqui
+                .andExpect(MockMvcResultMatchers.jsonPath("$.cpfProfissional").value(registro.getCpfProfissional())).andExpect(MockMvcResultMatchers.jsonPath("$.identificacaoPaciente").value(registro.getIdentificacaoPaciente())).andExpect(MockMvcResultMatchers.jsonPath("$.identificacaoVacina").value(registro.getIdentificacaoVacina())).andExpect(MockMvcResultMatchers.jsonPath("$.identificacaoDose").value(registro.getIdentificacaoDose()));
 
         verify(registroVacinacaoService, times(1)).criarRegistroVacinacao(registro);
     }
@@ -202,22 +158,8 @@ public class RegistroVacinacaoControllerTest {
         objectMapper.configure(SerializationFeature.INDENT_OUTPUT, false);
         String registroVacinacaoJson = objectMapper.writeValueAsString(registroVacinacao);
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/registro-vacinacao")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(registroVacinacaoJson))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest()) // Status esperado agora é BAD REQUEST (400)
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.[*]").value(
-                        containsInAnyOrder(
-                                "Nome não pode ser nulo e não pode estar em branco.",
-                                "Sobrenome não pode ser nulo e não pode estar em branco.",
-                                "Data não pode estar em branco.",
-                                "CPF não pode ser nulo e não pode estar em branco.",
-                                "Paciente não pode ser nulo e não pode estar em branco.",
-                                "Vacina não pode ser nula e não pode estar em branco.",
-                                "Dose não pode ser nula e não pode estar em branco."
-                        )
-                ));
+        mockMvc.perform(MockMvcRequestBuilders.post("/registro-vacinacao").contentType(MediaType.APPLICATION_JSON).content(registroVacinacaoJson)).andExpect(MockMvcResultMatchers.status().isBadRequest()) // Status esperado agora é BAD REQUEST (400)
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andExpect(MockMvcResultMatchers.jsonPath("$.[*]").value(containsInAnyOrder("Nome não pode ser nulo e não pode estar em branco.", "Sobrenome não pode ser nulo e não pode estar em branco.", "Data não pode estar em branco.", "CPF não pode ser nulo e não pode estar em branco.", "Paciente não pode ser nulo e não pode estar em branco.", "Vacina não pode ser nula e não pode estar em branco.", "Dose não pode ser nula e não pode estar em branco.")));
     }
 
     @Test
@@ -230,23 +172,8 @@ public class RegistroVacinacaoControllerTest {
         objectMapper.configure(SerializationFeature.INDENT_OUTPUT, false);
         String registroVacinacaoJson = objectMapper.writeValueAsString(registroVacinacao);
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/registro-vacinacao")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(registroVacinacaoJson))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest()) // Status esperado agora é BAD REQUEST (400)
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.[*]").value(
-                        containsInAnyOrder(
-                                "Nome não pode ser nulo e não pode estar em branco.",
-                                "Sobrenome não pode ser nulo e não pode estar em branco.",
-                                "Data não pode estar em branco.",
-                                "CPF não pode ser nulo e não pode estar em branco.",
-                                "Paciente não pode ser nulo e não pode estar em branco.",
-                                "Vacina não pode ser nula e não pode estar em branco.",
-                                "Dose não pode ser nula e não pode estar em branco.",
-                                "invalid Brazilian individual taxpayer registry number (CPF)"
-                        )
-                ));
+        mockMvc.perform(MockMvcRequestBuilders.post("/registro-vacinacao").contentType(MediaType.APPLICATION_JSON).content(registroVacinacaoJson)).andExpect(MockMvcResultMatchers.status().isBadRequest()) // Status esperado agora é BAD REQUEST (400)
+                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON)).andExpect(MockMvcResultMatchers.jsonPath("$.[*]").value(containsInAnyOrder("Nome não pode ser nulo e não pode estar em branco.", "Sobrenome não pode ser nulo e não pode estar em branco.", "Data não pode estar em branco.", "CPF não pode ser nulo e não pode estar em branco.", "Paciente não pode ser nulo e não pode estar em branco.", "Vacina não pode ser nula e não pode estar em branco.", "Dose não pode ser nula e não pode estar em branco.", "invalid Brazilian individual taxpayer registry number (CPF)")));
     }
 
     @Test
@@ -277,14 +204,10 @@ public class RegistroVacinacaoControllerTest {
         objectMapper.configure(SerializationFeature.INDENT_OUTPUT, false);
         String registroVacinacaoJson = objectMapper.writeValueAsString(registro);
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/registro-vacinacao")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(registroVacinacaoJson))
-                .andExpect(MockMvcResultMatchers.status().isCreated())
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+        mockMvc.perform(MockMvcRequestBuilders.post("/registro-vacinacao").contentType(MediaType.APPLICATION_JSON).content(registroVacinacaoJson)).andExpect(MockMvcResultMatchers.status().isCreated()).andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
 
         RegistroVacinacao registroVacinacaoAtualizado = new RegistroVacinacao();
-        registroVacinacaoAtualizado.setId("123S123SA58_atualizado");  // Defina o ID corretamente
+        registroVacinacaoAtualizado.setId("123S123SA58_atualizado");
         registroVacinacaoAtualizado.setNomeProfissional("Caroline");
         registroVacinacaoAtualizado.setSobrenomeProfissional("Silva");
         registroVacinacaoAtualizado.setDataVacinacao(LocalDate.of(2023, 1, 15));
@@ -301,15 +224,11 @@ public class RegistroVacinacaoControllerTest {
 
                 .thenAnswer(invocation -> {
                     RegistroVacinacao registroAtualizado = invocation.getArgument(1);
-                    // Lógica de processamento necessário para a atualização
                     return registroAtualizado;
                 });
 
 
-        mockMvc.perform(MockMvcRequestBuilders
-                        .put("/registro-vacinacao/" + registroVacinacaoAtualizado.getId())
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+        mockMvc.perform(MockMvcRequestBuilders.put("/registro-vacinacao/" + registroVacinacaoAtualizado.getId()).contentType(MediaType.APPLICATION_JSON)).andExpect(MockMvcResultMatchers.status().isBadRequest());
 
     }
 
@@ -332,24 +251,16 @@ public class RegistroVacinacaoControllerTest {
         objectMapper.configure(SerializationFeature.INDENT_OUTPUT, false);
         String novoRegistroVacinacaoJson = objectMapper.writeValueAsString(registro);
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/registro-vacinacao")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(novoRegistroVacinacaoJson))
-                .andExpect(MockMvcResultMatchers.status().isCreated())
-                .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
+        mockMvc.perform(MockMvcRequestBuilders.post("/registro-vacinacao").contentType(MediaType.APPLICATION_JSON).content(novoRegistroVacinacaoJson)).andExpect(MockMvcResultMatchers.status().isCreated()).andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON));
 
         RegistroVacinacao registroVacinacaoAtualizado = new RegistroVacinacao();
         registroVacinacaoAtualizado.setId(registro.getId());  // Define o ID do registro a ser atualizado
 
-        when(registroVacinacaoService.atualizarRegistroVacinacao(eq(registroVacinacaoAtualizado.getId()), any(RegistroVacinacao.class)))
-                .thenThrow(new ResourceNotFoundException("Não foi possível encontrar registro vacinação."));
+        when(registroVacinacaoService.atualizarRegistroVacinacao(eq(registroVacinacaoAtualizado.getId()), any(RegistroVacinacao.class))).thenThrow(new ResourceNotFoundException("Não foi possível encontrar registro vacinação."));
 
         String updatedRegistroVacinacaoJson = objectMapper.writeValueAsString(registroVacinacaoAtualizado);
 
-        mockMvc.perform(MockMvcRequestBuilders.put("/registro-vacinacao/" + registro.getId())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(updatedRegistroVacinacaoJson))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+        mockMvc.perform(MockMvcRequestBuilders.put("/registro-vacinacao/" + registro.getId()).contentType(MediaType.APPLICATION_JSON).content(updatedRegistroVacinacaoJson)).andExpect(MockMvcResultMatchers.status().isBadRequest());
     }
 
 
@@ -368,13 +279,9 @@ public class RegistroVacinacaoControllerTest {
 
         String id = "6520f03c0bfb2471fc4e5513";
 
-        doThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Registro de Vacinação não encontrado"))
-                .when(registroVacinacaoService).atualizarRegistroVacinacao(id, registro);
+        doThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Registro de Vacinação não encontrado")).when(registroVacinacaoService).atualizarRegistroVacinacao(id, registro);
 
-        mockMvc.perform(MockMvcRequestBuilders
-                        .put("/registro-vacinacao/" + id)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isBadRequest());
+        mockMvc.perform(MockMvcRequestBuilders.put("/registro-vacinacao/" + id).contentType(MediaType.APPLICATION_JSON)).andExpect(MockMvcResultMatchers.status().isBadRequest());
 
     }
 
@@ -408,14 +315,9 @@ public class RegistroVacinacaoControllerTest {
         objectMapper.configure(SerializationFeature.INDENT_OUTPUT, false);
         String registroVacinacaoJson = objectMapper.writeValueAsString(registro);
 
-        mockMvc.perform(MockMvcRequestBuilders.post("/registro-vacinacao")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(registroVacinacaoJson))
-                .andExpect(MockMvcResultMatchers.status().isCreated());
+        mockMvc.perform(MockMvcRequestBuilders.post("/registro-vacinacao").contentType(MediaType.APPLICATION_JSON).content(registroVacinacaoJson)).andExpect(MockMvcResultMatchers.status().isCreated());
 
-        mockMvc.perform(MockMvcRequestBuilders.delete("/registro-vacinacao/" + registro.getId())
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isNoContent());
+        mockMvc.perform(MockMvcRequestBuilders.delete("/registro-vacinacao/" + registro.getId()).contentType(MediaType.APPLICATION_JSON)).andExpect(MockMvcResultMatchers.status().isNoContent());
 
         verify(registroVacinacaoService, times(1)).excluirRegistroVacinacao(eq(registro.getId()));
     }
@@ -426,12 +328,17 @@ public class RegistroVacinacaoControllerTest {
     public void testeErroAoTentarDeletarRegistroComIdInvalido() throws Exception {
         String id = "12312321131311";
 
-        doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Não foi possível encontrar registro vacinação."))
-                .when(registroVacinacaoService).excluirRegistroVacinacao(eq(id));
+        doThrow(new ResponseStatusException(HttpStatus.NOT_FOUND, "Não foi possível encontrar registro vacinação.")).when(registroVacinacaoService).excluirRegistroVacinacao(eq(id));
 
-        mockMvc.perform(MockMvcRequestBuilders.delete("/registro-vacinacao/" + id)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isNotFound());
+        mockMvc.perform(MockMvcRequestBuilders.delete("/registro-vacinacao/" + id).contentType(MediaType.APPLICATION_JSON)).andExpect(MockMvcResultMatchers.status().isNotFound());
     }
 
+    @Test
+    @DisplayName("Deve retornar erro ao de not found caso tente acessar um endereço invalido ")
+    public void testeErroAoTentarAcessarLocalInvalido() throws Exception {
+
+        doThrow(new ResourceNotFoundException("Endereço não encontrado")).when(registroVacinacaoService).buscarRegistroVacinacao(anyString());
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/pacientez").contentType(MediaType.APPLICATION_JSON)).andExpect(MockMvcResultMatchers.status().isNotFound());
+    }
 }
