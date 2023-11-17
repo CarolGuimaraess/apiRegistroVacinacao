@@ -1,6 +1,6 @@
-package com.registroVacinacao.repository;
+package com.registro.vacinacao.repository;
 
-import com.registroVacinacao.entity.RegistroVacinacao;
+import com.registro.vacinacao.entity.RegistroVacinacao;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 

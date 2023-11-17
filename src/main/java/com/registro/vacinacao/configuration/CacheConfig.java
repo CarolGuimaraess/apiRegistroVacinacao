@@ -1,4 +1,4 @@
-package com.registroVacinacao.configuration;
+package com.registro.vacinacao.configuration;
 
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;

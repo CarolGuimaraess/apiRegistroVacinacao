@@ -1,4 +1,4 @@
-package com.registroVacinacao.entity;
+package com.registro.vacinacao.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,7 +9,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Past;
+import javax.validation.constraints.PastOrPresent;
 import java.time.LocalDate;
 
 
@@ -28,7 +28,7 @@ public class RegistroVacinacao {
     private String sobrenomeProfissional;
 
     @NotNull(message = "Data não pode estar em branco.")
-    @Past(message = "A data de vacinação não pode ser maior que a data atual.")
+    @PastOrPresent(message = "A data de vacinação não pode ser maior que a data atual.")
     private LocalDate dataVacinacao;
 
     @NotBlank(message = "CPF não pode ser nulo e não pode estar em branco.")
