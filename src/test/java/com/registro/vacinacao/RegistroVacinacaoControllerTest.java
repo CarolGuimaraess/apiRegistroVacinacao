@@ -395,6 +395,7 @@ public class RegistroVacinacaoControllerTest {
         // Verify
         verify(registroVacinacaoService, times(1)).excluirRegistroVacinacao(eq(registro.getId()));
     }
+
     @Test
     @DisplayName("Deve retornar erro ao tentar deletar um registro de vacinação não existente no banco de dados ")
     public void testeErroAoTentarDeletarRegistroComIdInvalido() throws Exception {

@@ -11,12 +11,10 @@ import org.springframework.web.client.RestTemplate;
 public class VacinaClientService {
     private final RestTemplate restTemplate;
     private final String urlBaseVacina;
-    private final TratamentoErros tratamentoDeErros;
 
     @Autowired
-    public VacinaClientService(@Value("${api.vacina.base.url}") String urlBaseVacina, TratamentoErros tratamentoDeErros) {
+    public VacinaClientService(@Value("${api.vacina.base.url}") String urlBaseVacina) {
         this.urlBaseVacina = urlBaseVacina;
-        this.tratamentoDeErros = tratamentoDeErros;
         this.restTemplate = new RestTemplate();
     }
 

@@ -39,8 +39,8 @@ public class PacienteController {
 
                 int statusCode = HttpServletResponse.SC_NOT_FOUND;
                 pacienteService.registrarLog("GET", "Listar doses de Pacientes", pacienteId, statusCode);
-
-                return ResponseEntity.notFound().build();
+                String mensagem = "Doses não encontrada.";
+                return tratamentoDeErros.criarRespostaDeErro(HttpStatus.valueOf(statusCode), mensagem);
             }
 
             int statusCode = HttpServletResponse.SC_OK;
@@ -61,7 +61,7 @@ public class PacienteController {
         }
     }
 
-    @GetMapping("/atrasadas")
+    @GetMapping("/doses/atrasadas")
     public ResponseEntity<?> listarPacientesComDosesAtrasadas(
             @RequestParam(name = "estado", required = false) String estado,
             @RequestParam Map<String, String> requestParams) {

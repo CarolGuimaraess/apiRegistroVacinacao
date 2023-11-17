@@ -92,7 +92,8 @@ public class RegistroVacinacaoController {
             int statusCode = (int) resultado.get("status");
             return HttpStatus.OK.value() == statusCode
                     ? ResponseEntity.created(null).body(resultado.get("registroVacinacao"))
-                    : ResponseEntity.status(statusCode).body(new ErrorDTO((String) resultado.get("mensagem")));        } catch (HttpClientErrorException e) {
+                    : ResponseEntity.status(statusCode).body(new ErrorDTO((String) resultado.get("mensagem")));
+        } catch (HttpClientErrorException e) {
             int statusCode = e.getRawStatusCode();
             registroVacinacaoService.registrarLog("POST", "Criar Registro de Vacinação", registroVacinacao.toString(), statusCode);
             String errorMessage = extrairMensagemDeErro(e.getResponseBodyAsString());
@@ -172,6 +173,29 @@ public class RegistroVacinacaoController {
             registroVacinacaoService.registrarLog("DELETE", "Deletar Registro de Vacinação", id, statusCode);
             return tratamentoDeErros.lidarComErroDoServidor(e);
         }
+    }
+
+    @PostMapping("/adicionar-registro-vacinacao")
+    public ResponseEntity<?> inserirRegistroVacinacaoPredefinidosAoBanco() {
+        try {
+            registroVacinacaoService.CriarListaRegistroVacinacao();
+            return tratamentoDeErros.criarRespostaDeErro(HttpStatus.CREATED, "Registro de vacinação inseridos com sucesso");
+
+        } catch (HttpClientErrorException e) {
+            int statusCode = e.getRawStatusCode();
+            String mensagem = "Erro ao tentar adicionar registros predefinidos";
+            registroVacinacaoService.registrarLog("POST", "Adicionar registros predefinidos ",
+                    mensagem, statusCode);
+
+            return tratamentoDeErros.criarRespostaDeErro(e.getStatusCode(), mensagem);
+        } catch (HttpServerErrorException e) {
+            int statusCode = e.getRawStatusCode();
+            registroVacinacaoService.registrarLog("POST", "Adicionar registros predefinidos ",
+                    "Erro ao tentar adicionar registros predefinidos", statusCode);
+            return tratamentoDeErros.lidarComErroDoServidor(e);
+
+        }
+
     }
 
     private String extrairMensagemDeErro(String responseBody) {
