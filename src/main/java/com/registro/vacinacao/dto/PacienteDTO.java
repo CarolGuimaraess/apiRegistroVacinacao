@@ -27,4 +27,6 @@ public class PacienteDTO {
     private List<String> contatos;
 
     private List<EnderecoDTO> enderecos;
+
+
 }

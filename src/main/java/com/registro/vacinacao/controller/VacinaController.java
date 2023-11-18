@@ -24,7 +24,7 @@ import java.util.Map;
 @Data
 
 @RestController
-@RequestMapping("/vacina")
+@RequestMapping("/registro-vacina")
 public class VacinaController {
     @Autowired
     private VacinaService vacinaService;

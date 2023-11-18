@@ -23,7 +23,7 @@ import java.util.Map;
 @Data
 
 @RestController
-@RequestMapping("/paciente")
+@RequestMapping("/registro-paciente")
 public class PacienteController {
 
     @Autowired

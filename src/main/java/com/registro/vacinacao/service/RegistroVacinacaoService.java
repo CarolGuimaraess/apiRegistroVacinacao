@@ -1,7 +1,6 @@
 package com.registro.vacinacao.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.registro.vacinacao.dto.ErrorDTO;
 import com.registro.vacinacao.entity.Log;
 import com.registro.vacinacao.entity.RegistroVacinacao;
 import com.registro.vacinacao.repository.RegistroVacinacaoRepository;
@@ -97,6 +96,7 @@ public class RegistroVacinacaoService {
         } else if (mensagemValidacao.equals("sucesso")) {
             resultado.put("status", HttpStatus.CREATED.value());
             resultado.put("mensagem", mensagemValidacao);
+            resultado.put("registroVacinacao", registroVacinacao);
             registroVacinacaoRepository.insert(registroVacinacao);
         } else {
             resultado.put("status", HttpStatus.NOT_FOUND.value());
@@ -265,76 +265,79 @@ public class RegistroVacinacaoService {
         JsonNode dadosVacinas = vacinaClientService.listarTodasVacinas();
         List<RegistroVacinacao> registroVacinacaoAdicionar = new ArrayList<>();
         RegistroVacinacao registro1 = new RegistroVacinacao();
+        if (dadosPacientes != null || dadosVacinas != null) {
+            registro1.setNomeProfissional("Antonio Vitor");
+            registro1.setSobrenomeProfissional("Guimaraes");
+            registro1.setDataVacinacao(LocalDate.of(2023, 10, 17));
+            registro1.setCpfProfissional("04445303550");
+            registro1.setIdentificacaoDose("1");
+            registro1.setIdentificacaoVacina(dadosVacinas.get(0).get("id").asText());
+            registro1.setIdentificacaoPaciente(dadosPacientes.get(0).get("id").asText());
+            criarRegistroVacinacao(registro1);
 
-        registro1.setNomeProfissional("Antonio Vitor");
-        registro1.setSobrenomeProfissional("Guimaraes");
-        registro1.setDataVacinacao(LocalDate.of(2023, 10, 17));
-        registro1.setCpfProfissional("04445303550");
-        registro1.setIdentificacaoDose("1");
-        registro1.setIdentificacaoVacina(dadosVacinas.get(0).get("id").asText());
-        registro1.setIdentificacaoPaciente(dadosPacientes.get(0).get("id").asText());
-        criarRegistroVacinacao(registro1);
 
+            RegistroVacinacao registro2 = new RegistroVacinacao();
+            registro2.setNomeProfissional("Caroline");
+            registro2.setSobrenomeProfissional("Guimaraes");
+            registro2.setDataVacinacao(LocalDate.of(2023, 11, 15));
+            registro2.setCpfProfissional("61019606096");
+            registro2.setIdentificacaoDose("1");
+            registro2.setIdentificacaoVacina(dadosVacinas.get(0).get("id").asText());
+            registro2.setIdentificacaoPaciente(dadosPacientes.get(0).get("id").asText());
+            criarRegistroVacinacao(registro2);
 
-        RegistroVacinacao registro2 = new RegistroVacinacao();
-        registro2.setNomeProfissional("Caroline");
-        registro2.setSobrenomeProfissional("Guimaraes");
-        registro2.setDataVacinacao(LocalDate.of(2023, 11, 15));
-        registro2.setCpfProfissional("61019606096");
-        registro2.setIdentificacaoDose("1");
-        registro2.setIdentificacaoVacina(dadosVacinas.get(0).get("id").asText());
-        registro2.setIdentificacaoPaciente(dadosPacientes.get(0).get("id").asText());
-        criarRegistroVacinacao(registro2);
+            RegistroVacinacao registro3 = new RegistroVacinacao();
 
-        RegistroVacinacao registro3 = new RegistroVacinacao();
+            registro3.setNomeProfissional("Jackson");
+            registro3.setSobrenomeProfissional("Conceição");
+            registro3.setDataVacinacao(LocalDate.of(2023, 9, 15));
+            registro3.setCpfProfissional("08301653043");
+            registro3.setIdentificacaoDose("1");
+            registro3.setIdentificacaoVacina(dadosVacinas.get(3).get("id").asText());
+            registro3.setIdentificacaoPaciente(dadosPacientes.get(3).get("id").asText());
+            criarRegistroVacinacao(registro3);
 
-        registro3.setNomeProfissional("Jackson");
-        registro3.setSobrenomeProfissional("Conceição");
-        registro3.setDataVacinacao(LocalDate.of(2023, 9, 15));
-        registro3.setCpfProfissional("08301653043");
-        registro3.setIdentificacaoDose("1");
-        registro3.setIdentificacaoVacina(dadosVacinas.get(3).get("id").asText());
-        registro3.setIdentificacaoPaciente(dadosPacientes.get(3).get("id").asText());
-        criarRegistroVacinacao(registro3);
+            RegistroVacinacao registro4 = new RegistroVacinacao();
+            registro4.setNomeProfissional("Paulo");
+            registro4.setSobrenomeProfissional("Reis");
+            registro4.setDataVacinacao(LocalDate.of(2023, 9, 20));
+            registro4.setCpfProfissional("53318885002");
+            registro4.setIdentificacaoDose("1");
+            registro4.setIdentificacaoVacina(dadosVacinas.get(1).get("id").asText());
+            registro4.setIdentificacaoPaciente(dadosPacientes.get(2).get("id").asText());
+            criarRegistroVacinacao(registro4);
 
-        RegistroVacinacao registro4 = new RegistroVacinacao();
-        registro4.setNomeProfissional("Paulo");
-        registro4.setSobrenomeProfissional("Reis");
-        registro4.setDataVacinacao(LocalDate.of(2023, 9, 20));
-        registro4.setCpfProfissional("53318885002");
-        registro4.setIdentificacaoDose("1");
-        registro4.setIdentificacaoVacina(dadosVacinas.get(1).get("id").asText());
-        registro4.setIdentificacaoPaciente(dadosPacientes.get(2).get("id").asText());
-        criarRegistroVacinacao(registro4);
+            RegistroVacinacao registro5 = new RegistroVacinacao();
 
-        RegistroVacinacao registro5 = new RegistroVacinacao();
+            registro5.setNomeProfissional("Tiago");
+            registro5.setSobrenomeProfissional("Santos");
+            registro5.setDataVacinacao(LocalDate.of(2023, 11, 11));
+            registro5.setCpfProfissional("18369594000");
+            registro5.setIdentificacaoDose("2");
+            registro5.setIdentificacaoVacina(dadosVacinas.get(2).get("id").asText());
+            registro5.setIdentificacaoPaciente(dadosPacientes.get(1).get("id").asText());
+            criarRegistroVacinacao(registro5);
 
-        registro5.setNomeProfissional("Tiago");
-        registro5.setSobrenomeProfissional("Santos");
-        registro5.setDataVacinacao(LocalDate.of(2023, 11, 11));
-        registro5.setCpfProfissional("18369594000");
-        registro5.setIdentificacaoDose("2");
-        registro5.setIdentificacaoVacina(dadosVacinas.get(2).get("id").asText());
-        registro5.setIdentificacaoPaciente(dadosPacientes.get(1).get("id").asText());
-        criarRegistroVacinacao(registro5);
+            RegistroVacinacao registro6 = new RegistroVacinacao();
+            registro6.setNomeProfissional("Pericles");
+            registro6.setSobrenomeProfissional("Santos");
+            registro6.setDataVacinacao(LocalDate.of(2023, 11, 1));
+            registro6.setCpfProfissional("04445303550");
+            registro6.setIdentificacaoDose("2");
+            registro6.setIdentificacaoVacina(dadosVacinas.get(2).get("id").asText());
+            registro6.setIdentificacaoPaciente(dadosPacientes.get(2).get("id").asText());
+            criarRegistroVacinacao(registro6);
 
-        RegistroVacinacao registro6 = new RegistroVacinacao();
-        registro6.setNomeProfissional("Pericles");
-        registro6.setSobrenomeProfissional("Santos");
-        registro6.setDataVacinacao(LocalDate.of(2023, 11, 1));
-        registro6.setCpfProfissional("04445303550");
-        registro6.setIdentificacaoDose("2");
-        registro6.setIdentificacaoVacina(dadosVacinas.get(2).get("id").asText());
-        registro6.setIdentificacaoPaciente(dadosPacientes.get(2).get("id").asText());
-        criarRegistroVacinacao(registro6);
+            registroVacinacaoAdicionar.add(registro1);
+            registroVacinacaoAdicionar.add(registro2);
+            registroVacinacaoAdicionar.add(registro3);
+            registroVacinacaoAdicionar.add(registro4);
+            registroVacinacaoAdicionar.add(registro5);
+            registroVacinacaoAdicionar.add(registro6);
 
-        registroVacinacaoAdicionar.add(registro1);
-        registroVacinacaoAdicionar.add(registro2);
-        registroVacinacaoAdicionar.add(registro3);
-        registroVacinacaoAdicionar.add(registro4);
-        registroVacinacaoAdicionar.add(registro5);
-        registroVacinacaoAdicionar.add(registro6);
-
-        return registroVacinacaoAdicionar;
+            return registroVacinacaoAdicionar;
+        } else {
+            return null;
+        }
     }
 }

@@ -14,6 +14,7 @@ import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -173,9 +174,21 @@ public class RegistroVacinacaoController {
     @PostMapping("/adicionar-registro-vacinacao")
     public ResponseEntity<?> inserirRegistroVacinacaoPredefinidosAoBanco() {
         try {
-            registroVacinacaoService.CriarListaRegistroVacinacao();
-            return tratamentoDeErros.criarRespostaDeErro(HttpStatus.CREATED, "Registro de vacinação inseridos com sucesso");
+            List<RegistroVacinacao> listaRegistroVacinacao = registroVacinacaoService.CriarListaRegistroVacinacao();
+            if (listaRegistroVacinacao != null){
+            int statusCode = HttpServletResponse.SC_CREATED;
+                String mensagem = "Registro de vacinação inseridos com sucesso";
 
+                registroVacinacaoService.registrarLog("POST", "Adicionar registros predefinidos ",
+                        mensagem, statusCode);
+            return tratamentoDeErros.criarRespostaDeErro(HttpStatus.valueOf(statusCode), mensagem);
+            }else {
+                int statusCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+                String mensagem = "Só é possível registrar vacinação se houver paciente e vacina cadastrada.";
+                registroVacinacaoService.registrarLog("POST", "Adicionar registros predefinidos ",
+                        mensagem, statusCode);
+                return tratamentoDeErros.criarRespostaDeErro(HttpStatus.valueOf(statusCode), mensagem);
+            }
         } catch (HttpClientErrorException e) {
             int statusCode = e.getRawStatusCode();
             String mensagem = "Erro ao tentar adicionar registros predefinidos";

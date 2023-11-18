@@ -48,7 +48,6 @@ public class PacienteControllerTest {
     private PacienteService pacienteService;
     @MockBean
     VacinaClientService vacinaClientService;
-    private final String RESOURCE_URL = "/doses/atrasadas";
 
     @MockBean
     PacienteClientService pacienteClientService;
@@ -59,11 +58,11 @@ public class PacienteControllerTest {
     private PacienteController pacienteController;
 
     @Test
-    @DisplayName("Deve retornar pacientes registrados com parametro de estado Bahia")
-    void testeListarPacientesComParametroEstadoBahia() throws Exception {
+    @DisplayName("Deve retornar pacientes com doses atrasadas registrados com parametro de estado Bahia")
+    void testeListarPacientesComDosesAtrasadasParametroEstadoBahia() throws Exception {
         String estado = "BA";
 
-        List<PacienteDTO> pacientesDTO = criarListaPacientesDTO();
+        List<PacienteDTO> pacientesDTO = ListaPacientesComDosesAtrasadasDTO();
 
         List<PacienteDTO> pacientesDoEstado = pacientesDTO.stream()
                 .filter(p -> estado.equals(p.getEnderecos().get(0).getEstado()))
@@ -76,7 +75,7 @@ public class PacienteControllerTest {
                 .setControllerAdvice(tratamentoDeErros)
                 .build();
 
-        ResultActions resultActions = mockMvc.perform(MockMvcRequestBuilders.get("/paciente/doses/atrasadas?estado=" + estado));
+        ResultActions resultActions = mockMvc.perform(MockMvcRequestBuilders.get("/registro-paciente/doses/atrasadas?estado=" + estado));
 
         resultActions
                 .andExpect(status().isOk())
@@ -93,13 +92,13 @@ public class PacienteControllerTest {
     }
 
     @Test
-    @DisplayName("Deve retornar pacientes registrados sem parametro de estado Bahia")
-    void testeListarPacientesSemParametroEstadoBahia() throws Exception {
+    @DisplayName("Deve retornar pacientes com doses atrasadas registrados sem parametro de estado Bahia")
+    void testeListarPacientesDosesAtrasadasSemParametroEstadoBahia() throws Exception {
         String estado = "";
 
-        List<PacienteDTO> pacientesDTO = criarListaPacientesDTO();
+        List<PacienteDTO> pacientesDTO = ListaPacientesComDosesAtrasadasDTO();
 
-        List<PacienteDTO> todosPacientes = pacientesDTO; // Sem filtro para todos os pacientes
+        List<PacienteDTO> todosPacientes = pacientesDTO;
 
         when(pacienteService.listarPacientesComDosesAtrasadas(eq(estado)))
                 .thenAnswer(invocation -> todosPacientes);
@@ -108,7 +107,7 @@ public class PacienteControllerTest {
                 .setControllerAdvice(tratamentoDeErros)
                 .build();
 
-        ResultActions resultActions = mockMvc.perform(MockMvcRequestBuilders.get("/paciente/doses/atrasadas?estado=" + estado));
+        ResultActions resultActions = mockMvc.perform(MockMvcRequestBuilders.get("/registro-paciente/doses/atrasadas?estado=" + estado));
 
         resultActions
                 .andExpect(status().isOk())
@@ -133,7 +132,6 @@ public class PacienteControllerTest {
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         verify(pacienteService).registrarLog(eq("GET"), eq("Listar doses de Pacientes"), anyString(), eq(HttpServletResponse.SC_OK));
     }
-
     @Test
     void testeListarDosesPacienteDosesNaoEncontradas() {
         when(pacienteService.listarDosesDoPaciente(anyString())).thenReturn(Collections.emptyList());
@@ -176,7 +174,7 @@ public class PacienteControllerTest {
 
     @Test
     public void testeListarDosesPacienteErroClienteHTTP() {
-        String pacienteId = "789";
+        String pacienteId = "789123432523423";
         when(pacienteService.listarDosesDoPaciente(anyString())).thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
 
         when(tratamentoDeErros.criarRespostaDeErro(any(), any())).thenReturn(ResponseEntity.status(HttpStatus.NOT_FOUND).build());
@@ -191,7 +189,7 @@ public class PacienteControllerTest {
 
     }
 
-    private List<PacienteDTO> criarListaPacientesDTO() {
+    private List<PacienteDTO> ListaPacientesComDosesAtrasadasDTO() {
         List<PacienteDTO> pacientes = new ArrayList<>();
 
         // Primeiro paciente com estado "BA"
@@ -242,5 +240,4 @@ public class PacienteControllerTest {
 
         return pacientes;
     }
-
 }
