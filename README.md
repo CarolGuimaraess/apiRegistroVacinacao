@@ -122,4 +122,8 @@ Acesse os seguintes endpoints da API:
 - GET: listar o total de vacinas aplicadas (estado é opcional):
 ```http://localhost:8085/registro-vacina/aplicadas/total?estado=ba```
 
+- ## Licença MIT
+
+Este projeto é licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE.txt) para detalhes.
+
 ---
