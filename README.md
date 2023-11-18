@@ -60,6 +60,23 @@ Acesse os seguintes endpoints da API:
 - POST - Criar registro vacinação:
 ```http://localhost:8085/registro-vacinacao/```
 
+ Exemplo de JSON:
+  ```json
+  {
+      "id": "652848c0c6556c0cc7",
+      "nomeProfissional": "Jon",
+      "sobrenomeProfissional":"Son",
+      "dataVacinacao": "2023-11-06",
+      "cpfProfissional": "52401084045",
+      "identificacaoPaciente": "652856c0cc781c257bc483b8",
+      "identificacaoVacina": "Joson",
+      "identificacaoDose": "67b1c2c48c0c65285c7853b8"
+  }
+  ```
+
+- POST - Cadastra 6 registros:
+``` http://localhost:8085/registro-vacinacao/adicionar-registro-vacinacao```
+
 
 - GET - listar todos os registros vacinais:
 ```http://localhost:8085/registro-vacinacao/```
@@ -91,18 +108,18 @@ Acesse os seguintes endpoints da API:
 
 
 - GET: listar doses do paciente (informar o id do cliente):
-```http://localhost:8085/registro-vacinacao/pacientes/id/doses```
+```http://localhost:8085/registro-paciente/id/doses```
 
 
 - GET: listar pacientes com doses atrasadas (estado é opcional):
-```http://localhost:8085/registro-vacinacao/pacientes/atrasadas?estado=ba```
+```http://localhost:8085/registro-paciente/doses/atrasadas?estado=ba```
 
 
 - GET: listar o total de vacinas aplicadas de cada fabricante (estado é opcional):
-```http://localhost:8085/registro-vacinacao/pacientes/vacinas/aplicadas?fabricante=fizer&estado=ba```
+```http://localhost:8085/registro-vacina/aplicadas?fabricante=pfizer&estado=ba```
 
 
 - GET: listar o total de vacinas aplicadas (estado é opcional):
-```http://localhost:8085/registro-vacinacao/aplicadas/total?estado=ba```
+```http://localhost:8085/registro-vacina/aplicadas/total?estado=ba```
 
 ---
