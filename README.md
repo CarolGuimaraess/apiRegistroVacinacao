@@ -8,14 +8,14 @@ Certifique-se de ter as seguintes ferramentas instaladas em sua máquina:
 
 - [Java Development Kit (JDK) 8](https://www.oracle.com/java/technologies/downloads/#java8.html)
 - [IntelliJ IDEA](https://www.jetbrains.com/idea/download/)
-- [MongoDB Compass](https://www.mongodb.com/try/download/compass)
+- [MongoDB Community Server](https://www.mongodb.com/try/download/community)
 - [Postman](https://www.postman.com/downloads/)
 
 ## Configuração do Ambiente
 
 ### MongoDB
 
-1. Instale o MongoDB Compass seguindo as instruções [aqui](https://docs.mongodb.com/compass/current/install/).
+1. Instale o MongoDB Community Server [aqui](https://www.mongodb.com/try/download/community). (Pressione select package em Community Community Server, em seguida pressione download)
 2. Abra o MongoDB Compass e crie um banco de dados chamado `registro-vacinacao`.
 
 ### IntelliJ IDEA
