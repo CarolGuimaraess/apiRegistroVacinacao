@@ -63,6 +63,7 @@ Acesse os seguintes endpoints da API:
  Exemplo de JSON:
   ```json
   {
+      "id": "652848c0c6556c0cc7",
       "nomeProfissional": "Jon",
       "sobrenomeProfissional":"Son",
       "dataVacinacao": "2023-11-06",
@@ -91,7 +92,6 @@ Acesse os seguintes endpoints da API:
  Exemplo de JSON:
   ```json
   {
-      "id": "652848c0c6556c0cc7",
       "nomeProfissional": "Jon",
       "sobrenomeProfissional":"Son",
       "dataVacinacao": "2023-11-06",
