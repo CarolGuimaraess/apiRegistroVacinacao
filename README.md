@@ -55,27 +55,26 @@ api.vacina.base.url = http://localhost:8081/vacina/
 
 ## Endpoints
 
-Acesse os seguintes endpoints da API:
+Após cadastro Pacientes e Vacinas, acesse os seguintes endpoints da API:
 
-- POST - Criar registro vacinação:
-```http://localhost:8085/registro-vacinacao/```
+- POST - Cadastra 6 registros:
+  ``` http://localhost:8085/registro-vacinacao/adicionar-registro-vacinacao```
 
  Exemplo de JSON:
   ```json
   {
-      "id": "652848c0c6556c0cc7",
-      "nomeProfissional": "Jon",
-      "sobrenomeProfissional":"Son",
-      "dataVacinacao": "2023-11-06",
-      "cpfProfissional": "52401084045",
-      "identificacaoPaciente": "652856c0cc781c257bc483b8",
-      "identificacaoVacina": "Joson",
-      "identificacaoDose": "67b1c2c48c0c65285c7853b8"
+      "nomeProfissional":"julia",
+      "sobrenomeProfissional":"Guimarães",
+      "dataVacinacao":"2022-10-07",
+      "cpfProfissional":"838.326.240-07",
+      "identificacaoPaciente":"65285720cc781c257bc483ba",
+      "identificacaoVacina":"652857ae4f1af0601e896dca",
+      "identificacaoDose":"1"
   }
   ```
 
-- POST - Cadastra 6 registros:
-``` http://localhost:8085/registro-vacinacao/adicionar-registro-vacinacao```
+- POST - Criar registro vacinação:
+  ```http://localhost:8085/registro-vacinacao/```
 
 
 - GET - listar todos os registros vacinais:
@@ -92,13 +91,13 @@ Acesse os seguintes endpoints da API:
  Exemplo de JSON:
   ```json
   {
-      "nomeProfissional": "Jon",
-      "sobrenomeProfissional":"Son",
-      "dataVacinacao": "2023-11-06",
-      "cpfProfissional": "52401084045",
-      "identificacaoPaciente": "652856c0cc781c257bc483b8",
-      "identificacaoVacina": "Joson",
-      "identificacaoDose": "67b1c2c48c0c65285c7853b8"
+      "nomeProfissional":"julia",
+      "sobrenomeProfissional":"Guimarães",
+      "dataVacinacao":"2022-10-07",
+      "cpfProfissional":"838.326.240-07",
+      "identificacaoPaciente":"65285720cc781c257bc483ba",
+      "identificacaoVacina":"652857ae4f1af0601e896dca",
+      "identificacaoDose":"1"
   }
   ```
 
