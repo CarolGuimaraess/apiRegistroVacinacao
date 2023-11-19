@@ -193,7 +193,6 @@ public class RegistroVacinacaoService {
 
     }
 
-    @CachePut(value = "registroVacinacaoCache", key = "#id")
     public Map<String, Object> atualizarRegistroVacinacao(String id, RegistroVacinacao registroVacinacao) {
         Map<String, Object> resultado = new HashMap<>();
         String mensagemValidacao = validarRegistroVacinacao(registroVacinacao.getIdentificacaoVacina(), registroVacinacao.getIdentificacaoPaciente(), "atualizar");
