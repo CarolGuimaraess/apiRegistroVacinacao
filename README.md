@@ -60,7 +60,7 @@ Após cadastro Pacientes e Vacinas, acesse os seguintes endpoints da API:
 - POST - Cadastra 6 registros:
   ``` http://localhost:8085/registro-vacinacao/adicionar-registro-vacinacao```
 
- Exemplo de JSON:
+Exemplo de JSON:
   ```json
   {
       "nomeProfissional":"julia",
@@ -78,17 +78,17 @@ Após cadastro Pacientes e Vacinas, acesse os seguintes endpoints da API:
 
 
 - GET - listar todos os registros vacinais:
-```http://localhost:8085/registro-vacinacao/```
+  ```http://localhost:8085/registro-vacinacao/```
 
 
 - GET - listar registros vacinais por id (informar o id do registro vacinação):
-```http://localhost:8085/registro-vacinacao/id```
+  ```http://localhost:8085/registro-vacinacao/id```
 
 
 - PUT - Atualizar registro vacinação (informar o id do registro vacinação):
-```http://localhost:8085/registro-vacinacao/id```
+  ```http://localhost:8085/registro-vacinacao/id```
 
- Exemplo de JSON:
+Exemplo de JSON:
   ```json
   {
       "nomeProfissional":"julia",
@@ -102,23 +102,23 @@ Após cadastro Pacientes e Vacinas, acesse os seguintes endpoints da API:
   ```
 
 - DELETE - Deletar registro vacinação (informar o id do registro vacinação):
-```http://localhost:8085/registro-vacinacao/id```
+  ```http://localhost:8085/registro-vacinacao/id```
 
 
 - GET: listar doses do paciente (informar o id do cliente):
-```http://localhost:8085/registro-paciente/id/doses```
+  ```http://localhost:8085/registro-paciente/id/doses```
 
 
 - GET: listar pacientes com doses atrasadas (estado é opcional):
-```http://localhost:8085/registro-paciente/doses/atrasadas?estado=ba```
+  ```http://localhost:8085/registro-paciente/doses/atrasadas?estado=ba```
 
 
 - GET: listar o total de vacinas aplicadas de cada fabricante (estado é opcional):
-```http://localhost:8085/registro-vacina/aplicadas?fabricante=pfizer&estado=ba```
+  ```http://localhost:8085/registro-vacina/aplicadas?fabricante=pfizer&estado=ba```
 
 
 - GET: listar o total de vacinas aplicadas (estado é opcional):
-```http://localhost:8085/registro-vacina/aplicadas/total?estado=ba```
+  ```http://localhost:8085/registro-vacina/aplicadas/total?estado=ba```
 
 - ## Licença MIT
 
