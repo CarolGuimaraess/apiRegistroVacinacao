@@ -51,6 +51,7 @@ public class VacinaService {
 
         mongoTemplate.insert(log, "log");
     }
+
     @Cacheable("registroVacinacaoCache")
     public Map<String, Object> listarTotalVacinasAplicadas(String estado) {
         List<Map<String, Object>> registrosComPacientes = combinarRegistroComPaciente();
@@ -101,8 +102,11 @@ public class VacinaService {
                 .map(vacina -> vacina.get("id").asText())
                 .flatMap(id -> registrosComPacientes.stream()
                         .filter(registroComPaciente -> {
+                            RegistroVacinacao registro = (RegistroVacinacao) registroComPaciente.get("registroVacinacao");
+
+                            System.out.println(registro);
                             JsonNode pacienteNode = (JsonNode) registroComPaciente.get("paciente");
-                            return estadoValido(pacienteNode, estado);
+                            return estadoValido(pacienteNode, estado) && id.equals(registro.getIdentificacaoVacina());
                         })
                 ).count();
     }
