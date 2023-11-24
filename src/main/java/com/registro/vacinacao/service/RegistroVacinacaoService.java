@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.http.HttpStatus;
@@ -123,36 +122,45 @@ public class RegistroVacinacaoService {
             }
         }
 
-        // Encontrar registros de vacinação do paciente
-        List<RegistroVacinacao> pacienteVacinacao = encontrarRegistroVacinacaoPaciente(dadosRegistroVacinacao, pacienteId, vacinasDoFabricante);
+        List<RegistroVacinacao> pacienteTemVacinacao = verificarRegistroPertencePaciente(dadosRegistroVacinacao, pacienteId);
 
-        if ((Objects.equals(tipo, "criar") && pacienteVacinacao.size() > 0) ||
-                (Objects.equals(tipo, "atualizar") && pacienteVacinacao.size() > 1)) {
-
-            LocalDate ultimaDataVacinacao = pacienteVacinacao.get(pacienteVacinacao.size() - 1).getDataVacinacao();
-            int intervaloDeDoses = dadosVacina.get("intervaloDeDoses").asInt();
-            LocalDate dataMinimaProximaDose = ultimaDataVacinacao.plusDays(intervaloDeDoses);
-            LocalDate dataAtual = LocalDate.now();
-            String nomePaciente = dadosPaciente.get("nome").asText();
-            String fabricanteVacina = dadosVacina.get("fabricante").asText();
-
-            if (!verificarDosesDeFabricantesDiferentes(pacienteVacinacao, vacinasDoFabricante)) {
-                return "A primeira dose aplicada no paciente '" + nomePaciente + "' foi: '" + fabricanteVacina + "'. Todas as doses devem ser aplicadas com o mesmo medicamento!";
+        String idPrimeiraVacina = pacienteTemVacinacao.get(0).getIdentificacaoVacina();
+        JsonNode dadosPrimeiraVacina = vacinaClientService.buscarVacina(idPrimeiraVacina);
+        String nomeFabricante = dadosPrimeiraVacina.get("fabricante").toString().replace("\"", "");
+        String nomePaciente = dadosPaciente.get("nome").asText();
+        
+        if (!pacienteTemVacinacao.isEmpty()) {
+            if (pacienteTemVacinacao.size() == 1 && (Objects.equals(tipo, "atualizar"))) {
+                return "sucesso";
             }
 
-            if (dataAtual.isBefore(dataMinimaProximaDose)) {
-                String mensagem = "O paciente " + nomePaciente + " recebeu uma dose de " + fabricanteVacina + " no dia " +
-                        ultimaDataVacinacao + ". A próxima dose deverá ser aplicada a partir do dia '" +
-                        dataMinimaProximaDose + "!";
-                return mensagem;
+            List<RegistroVacinacao> pacienteVacinacao = encontrarRegistroVacinacaoPaciente(dadosRegistroVacinacao, pacienteId, vacinasDoFabricante);
+            if (pacienteVacinacao.isEmpty()) {
+                return "A primeira dose aplicada no paciente " + nomePaciente + " foi: " + nomeFabricante + ". Todas as doses devem ser aplicadas com o mesmo medicamento!";
             }
+                LocalDate ultimaDataVacinacao = pacienteVacinacao.get(pacienteVacinacao.size() - 1).getDataVacinacao();
+                int intervaloDeDoses = dadosVacina.get("intervaloDeDoses").asInt();
+                LocalDate dataMinimaProximaDose = ultimaDataVacinacao.plusDays(intervaloDeDoses);
+                LocalDate dataAtual = LocalDate.now();
 
-            if (pacienteVacinacao.size() >= dadosVacina.get("numeroDeDoses").asInt()) {
-                return "Não foi possível registrar sua solicitação pois o paciente " +
-                        nomePaciente + " já recebeu todas as vacinas necessárias de seu tratamento!";
-            }
+                if (!verificarDosesDeFabricantesDiferentes(pacienteVacinacao, vacinasDoFabricante)) {
+                    return "A primeira dose aplicada no paciente " + nomePaciente + " foi: " + nomeFabricante + ". Todas as doses devem ser aplicadas com o mesmo medicamento!";
+                }
+
+                if (dataAtual.isBefore(dataMinimaProximaDose)) {
+                    String mensagem = "O paciente " + nomePaciente + " recebeu uma dose de " + nomeFabricante + " no dia " +
+                            ultimaDataVacinacao + ". A próxima dose deverá ser aplicada a partir do dia '" +
+                            dataMinimaProximaDose + "!";
+                    return mensagem;
+                }
+
+                if ((Objects.equals(tipo, "criar")) && pacienteVacinacao.size() >= dadosVacina.get("numeroDeDoses").asInt()) {
+                    return "Não foi possível registrar sua solicitação pois o paciente " +
+                            nomePaciente + " já recebeu todas as vacinas necessárias de seu tratamento!";
+                }
+
+
         }
-
         return "sucesso";
     }
 
@@ -163,6 +171,18 @@ public class RegistroVacinacaoService {
         for (RegistroVacinacao registro : registros) {
             // Verifica se o registro pertence ao paciente específico e se o ID da vacina está na lista do fabricante
             if (registro.getIdentificacaoPaciente().equals(pacienteId) && vacinasDoFabricante.stream().anyMatch(vacina -> vacina.get("id").asText().equals(registro.getIdentificacaoVacina()))) {
+                pacienteVacinacao.add(registro);
+            }
+        }
+
+        return pacienteVacinacao;
+    }
+
+    private @NotNull List<RegistroVacinacao> verificarRegistroPertencePaciente(@NotNull List<RegistroVacinacao> registros, String pacienteId) {
+        List<RegistroVacinacao> pacienteVacinacao = new ArrayList<>();
+
+        for (RegistroVacinacao registro : registros) {
+            if (registro.getIdentificacaoPaciente().equals(pacienteId)) {
                 pacienteVacinacao.add(registro);
             }
         }
