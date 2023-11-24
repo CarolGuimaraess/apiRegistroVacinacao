@@ -22,14 +22,12 @@ public class VacinaService {
     private final RegistroVacinacaoService registroVacinacaoService;
     private final PacienteClientService pacienteClientService;
     private final VacinaClientService vacinaClientService;
-    private final CacheManager cacheManager;
 
     @Autowired
-    public VacinaService(RegistroVacinacaoService registroVacinacaoService, PacienteClientService pacienteClientService, VacinaClientService vacinaClientService, CacheManager cacheManager) {
+    public VacinaService(RegistroVacinacaoService registroVacinacaoService, PacienteClientService pacienteClientService, VacinaClientService vacinaClientService) {
         this.registroVacinacaoService = registroVacinacaoService;
         this.pacienteClientService = pacienteClientService;
         this.vacinaClientService = vacinaClientService;
-        this.cacheManager = cacheManager;
     }
 
     @Autowired

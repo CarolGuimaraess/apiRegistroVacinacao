@@ -11,8 +11,6 @@ import com.registro.vacinacao.service.client.PacienteClientService;
 import com.registro.vacinacao.service.client.VacinaClientService;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
@@ -31,11 +29,10 @@ public class PacienteService {
     private final VacinaClientService vacinaClientService;
 
     @Autowired
-    public PacienteService(RegistroVacinacaoService registroVacinacaoService, PacienteClientService pacienteClientService, VacinaClientService vacinaClientService, CacheManager cacheManager) {
+    public PacienteService(RegistroVacinacaoService registroVacinacaoService, PacienteClientService pacienteClientService, VacinaClientService vacinaClientService) {
         this.registroVacinacaoService = registroVacinacaoService;
         this.pacienteClientService = pacienteClientService;
         this.vacinaClientService = vacinaClientService;
-        this.cacheManager = cacheManager;
     }
 
     @Autowired
@@ -57,9 +54,8 @@ public class PacienteService {
         mongoTemplate.insert(log, "log");
     }
 
-    private final CacheManager cacheManager;
 
-    @Cacheable(value = "registroVacinacaoCache", key = "#pacienteId")
+
     public List<PacienteDosesDTO> listarDosesDoPaciente(String pacienteId) {
         List<RegistroVacinacao> registrosDoPaciente = registroVacinacaoService.listarRegistroVacinacao().stream()
                 .filter(registro -> pacienteId.equals(registro.getIdentificacaoPaciente()))
