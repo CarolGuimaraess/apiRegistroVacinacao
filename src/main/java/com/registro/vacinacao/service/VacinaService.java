@@ -52,7 +52,7 @@ public class VacinaService {
         mongoTemplate.insert(log, "log");
     }
 
-    @Cacheable("registroVacinacaoCache")
+
     public Map<String, Object> listarTotalVacinasAplicadas(String estado) {
         List<Map<String, Object>> registrosComPacientes = combinarRegistroComPaciente();
 
