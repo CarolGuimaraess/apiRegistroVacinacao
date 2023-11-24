@@ -7,8 +7,6 @@ import com.registro.vacinacao.service.client.PacienteClientService;
 import com.registro.vacinacao.service.client.VacinaClientService;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
@@ -102,7 +100,6 @@ public class VacinaService {
                         .filter(registroComPaciente -> {
                             RegistroVacinacao registro = (RegistroVacinacao) registroComPaciente.get("registroVacinacao");
 
-                            System.out.println(registro);
                             JsonNode pacienteNode = (JsonNode) registroComPaciente.get("paciente");
                             return estadoValido(pacienteNode, estado) && id.equals(registro.getIdentificacaoVacina());
                         })
