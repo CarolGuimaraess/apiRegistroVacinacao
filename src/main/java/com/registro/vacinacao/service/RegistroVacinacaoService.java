@@ -123,13 +123,13 @@ public class RegistroVacinacaoService {
         }
 
         List<RegistroVacinacao> pacienteTemVacinacao = verificarRegistroPertencePaciente(dadosRegistroVacinacao, pacienteId);
-
+        if (!pacienteTemVacinacao.isEmpty()) {
         String idPrimeiraVacina = pacienteTemVacinacao.get(0).getIdentificacaoVacina();
         JsonNode dadosPrimeiraVacina = vacinaClientService.buscarVacina(idPrimeiraVacina);
         String nomeFabricante = dadosPrimeiraVacina.get("fabricante").toString().replace("\"", "");
         String nomePaciente = dadosPaciente.get("nome").asText();
         
-        if (!pacienteTemVacinacao.isEmpty()) {
+
             if (pacienteTemVacinacao.size() == 1 && (Objects.equals(tipo, "atualizar"))) {
                 return "sucesso";
             }
